@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SoccerBet · Partidos</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F4F7;--ink:#1E1423;--muted:#665D6B;--line:#E3DDE6;--pink:#9ABED6;--pink-d:#A63BB0;--pink-t:#FCE6FD;--red:#C4372B;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Barlow,system-ui,sans-serif}
+button{font:inherit;cursor:pointer;color:inherit}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.disp{font-family:"Barlow Condensed",sans-serif;font-weight:700}
+header{background:var(--pink);position:sticky;top:env(safe-area-inset-top,0px);z-index:10}
+.bar{max-width:1320px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:28px}
+.brand{font-size:30px;display:flex;align-items:center;gap:8px}
+.ball{width:15px;height:15px;border-radius:50%;background:var(--ink)}
+nav{display:flex;gap:4px;flex:1}
+nav a{padding:8px 12px;font-weight:600;border-bottom:3px solid transparent}
+nav a.on{border-color:var(--ink)}
+.wallet{display:flex;align-items:center;gap:12px}
+.bal{text-align:right;line-height:1.15;font-size:12px}.bal b{display:block;font-size:17px}
+.btn{background:var(--ink);color:#fff;border:0;border-radius:6px;padding:8px 14px;font-weight:600}
+.avatar{width:36px;height:36px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:700}
+.shell{display:flex;align-items:flex-start}
+.shell main{flex:1;min-width:0;max-width:1100px;margin:0 auto;padding:20px}
+.burger{width:40px;height:40px;border:0;background:transparent;border-radius:6px;display:grid;place-content:center;gap:5px}
+.burger:hover{background:rgba(30,20,35,.12)}
+.burger span{display:block;width:22px;height:3px;background:var(--ink);border-radius:2px}
+/* sidebar */
+.side{background:var(--pink);width:260px;flex:none;position:sticky;top:calc(56px + env(safe-area-inset-top,0px));height:calc(100vh - 56px);overflow-x:hidden;overflow-y:auto;border-top:1px solid rgba(30,20,35,.15);transition:width .2s}
+.side>*{min-width:260px}
+.shell.collapsed .side{width:0}
+.search{display:flex;padding:12px;border-bottom:1px solid rgba(30,20,35,.15)}
+.search input{flex:1;min-width:0;background:#fff;border:1px solid transparent;border-right:0;border-radius:6px 0 0 6px;padding:8px 10px;font:inherit}
+.search button{background:var(--ink);border:0;border-radius:0 6px 6px 0;padding:0 12px}
+.side h3{margin:0;padding:14px 16px 6px;font-size:13px;color:var(--ink);font-family:Barlow,sans-serif;font-weight:600}
+.side a{display:flex;align-items:center;gap:10px;padding:11px 16px;font-weight:600;border-left:4px solid transparent}
+.side a:hover{background:rgba(255,255,255,.45)}
+.side a.on{background:#fff;border-color:var(--ink)}
+.side a.sub{padding-left:42px;font-weight:500}
+.side i{font-style:normal;width:20px;text-align:center}
+/* main */
+.chips{display:flex;gap:8px;overflow-x:auto;margin-bottom:14px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:99px;padding:7px 16px;white-space:nowrap;font-weight:500}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.promos{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.promo{border-radius:10px;padding:18px 20px;min-height:110px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start}
+.promo.a{background:var(--pink)}.promo.b{background:var(--ink);color:#fff}
+.promo h2{margin:0;font:700 26px/1.05 "Barlow Condensed",sans-serif}
+.promo span{font-size:13px;font-weight:600;border-radius:5px;padding:5px 12px}
+.promo.a span{background:var(--ink);color:#fff}.promo.b span{background:var(--pink);color:var(--ink)}
+.tabs{background:#fff;border:1px solid var(--line);border-radius:10px 10px 0 0;display:flex;justify-content:center;gap:28px}
+.tab{background:none;border:0;border-bottom:3px solid transparent;padding:14px 4px;color:var(--muted);font-weight:500;font-size:16px}
+.tab.on{color:var(--ink);border-color:var(--pink)}
+.sec{background:#fff;border:1px solid var(--line);border-top:0;border-radius:0 0 10px 10px;margin-bottom:16px;overflow:hidden}
+.sec>header{position:static;background:var(--ink);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px;font-weight:600}
+.tag{background:var(--red);font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px}
+.tag.p{background:var(--pink);color:var(--ink)}
+.comp{padding:10px 16px;color:var(--pink-d);font-weight:600;font-size:14px;border-bottom:1px solid var(--line)}
+.match{display:grid;grid-template-columns:70px 1fr auto;gap:14px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.time{font-size:13px;color:var(--muted);line-height:1.3}.time b{display:block;color:var(--red)}
+.teams{display:grid;gap:6px;font-weight:600}
+.t{display:flex;align-items:center;gap:10px}
+.sh{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff;flex:none}
+.sc{margin-left:auto;font:700 20px "Barlow Condensed",sans-serif;padding-right:16px}
+.right{display:flex;align-items:center;gap:14px}
+.more{font-size:13px;color:var(--muted)}
+.odds{display:grid;grid-template-columns:repeat(3,88px);gap:8px}
+.odd{border:1px solid #CFC6D4;background:#fff;border-radius:6px;padding:6px 4px;text-align:center;line-height:1.2}
+.odd small{display:block;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.odd b{font:700 20px "Barlow Condensed",sans-serif}
+.odd:hover{border-color:var(--pink-d)}
+.odd.sel{background:var(--pink);border-color:var(--pink-d)}.odd.sel small{color:var(--ink)}
+@media(max-width:900px){.side{position:fixed;left:0;z-index:9;box-shadow:4px 0 16px rgba(30,20,35,.2)}.shell.collapsed .side{box-shadow:none}nav{display:none}.promos{grid-template-columns:1fr}.bar{gap:12px}.wallet{margin-left:auto}}
+@media(max-width:640px){.match{grid-template-columns:1fr}.odds{grid-template-columns:repeat(3,1fr)}.right{flex-direction:column;align-items:stretch}}
+</style>
+</head>
+<body>
+<header><div class="bar">
+ <button class="burger" id="burger" aria-label="Mostrar u ocultar menú" aria-expanded="true"><span></span><span></span><span></span></button>
+ <a class="brand disp" href="home.html"><span class="ball"></span>SoccerBet</a>
+ <nav aria-label="Principal"><a class="on" href="#">Deporte</a><a href="#">En vivo</a><a href="#">Mis apuestas</a><a href="#">Promociones</a><a href="#">Ayuda</a></nav>
+ <div class="wallet">
+  <div class="bal">Saldo<b>$ 120.000</b></div>
+  <button class="btn">Recargar</button>
+  <a class="avatar" href="https://claude.ai/artifact/K26cBR1tTWKy9R6PzZnwQc" title="Cerrar sesión" aria-label="Cerrar sesión">CM</a>
+ </div>
+</div></header>
+
+<div class="shell">
+ <aside class="side" aria-label="Menú">
+  <div class="search"><input placeholder="Buscar equipo o liga" aria-label="Buscar"><button aria-label="Buscar">🔍</button></div>
+  <h3>Popular</h3>
+  <a href="#"><i>🧾</i>Mis apuestas</a>
+  <a href="#"><i>🎁</i>Apuestas gratuitas</a>
+  <a href="#"><i>⭐</i>Destacados</a>
+  <a href="#"><i>🔴</i>En vivo ahora</a>
+  <a href="#"><i>⏱</i>Comenzando pronto</a>
+  <h3>Competiciones</h3>
+  <a class="on" href="#"><i>⚽</i>Liga colombiana</a>
+  <a class="sub" href="#">Datos y resultados</a>
+  <a class="sub" href="#">Apuestas de jugadores</a>
+  <a class="sub" href="#">Tabla de posiciones</a>
+ </aside>
+
+ <main>
+  <div class="chips"><button class="chip on">Todo</button><button class="chip">Fútbol</button><button class="chip">Jugadores</button><button class="chip">Datos</button><button class="chip">En vivo</button></div>
+  <div class="promos">
+   <div class="promo a"><h2>Recarga hoy y recibe saldo extra de pruebas</h2><span>Lo quiero</span></div>
+   <div class="promo b"><h2>Gana con dos goles de ventaja en tu apuesta</h2><span>Ver cómo</span></div>
+  </div>
+  <div class="tabs" role="tablist"><button class="tab on">En vivo y próximo</button><button class="tab">Competición</button><button class="tab">Todo fútbol</button></div>
+  <section class="sec">
+   <header><span class="tag">EN VIVO</span>En vivo ahora</header>
+   <div class="comp">Colombia / Liga BetPlay</div>
+   <div id="live"></div>
+  </section>
+  <section class="sec" style="border-top:1px solid var(--line);border-radius:10px">
+   <header><span class="tag p">PRÓXIMO</span>Comenzando pronto</header>
+   <div class="comp">Colombia / Liga BetPlay</div>
+   <div id="soon"></div>
+  </section>
+ </main>
+
+</div>
+
+<script>
+const M=[
+ {g:"live",time:"15:10",a:["Llaneros F.C.","LLA","#1F6FB5",0],b:["Club Deportivo Junior","JUN","#C4372B",0],o:[2.88,3.10,2.30],mk:59,live:1},
+ {g:"soon",time:"Hoy 18:00",a:["Atlético Nacional","NAL","#2E7D4F"],b:["Millonarios","MIL","#1F4E9C"],o:[2.35,3.10,2.90],mk:64},
+ {g:"soon",time:"Hoy 20:10",a:["Deportivo Cali","CAL","#1E7B3A"],b:["Independiente Santa Fe","SFE","#B5302B"],o:[2.60,3.05,2.70],mk:58}
+];
+let sel={};
+function row(m,i){return `<div class="match"><div class="time">${m.live?"<b>En vivo</b>":""}${m.time}</div>
+<div class="teams">${[m.a,m.b].map(t=>`<div class="t"><span class="sh" style="background:${t[2]}">${t[1]}</span>${t[0]}${m.live?`<span class="sc">${t[3]}</span>`:""}</div>`).join("")}</div>
+<div class="right"><span class="more">+${m.mk}</span><div class="odds">${m.o.map((q,k)=>`<button class="odd ${sel[i]===k?"sel":""}" data-i="${i}" data-k="${k}" aria-pressed="${sel[i]===k}"><small>${k==0?m.a[0]:k==1?"Empate":m.b[0]}</small><b>${q.toFixed(2)}</b></button>`).join("")}</div></div></div>`}
+function render(){
+ live.innerHTML=M.map((m,i)=>m.g=="live"?row(m,i):"").join("");
+ soon.innerHTML=M.map((m,i)=>m.g=="soon"?row(m,i):"").join("");
+}
+document.addEventListener("click",e=>{
+ const o=e.target.closest(".odd"),tb=e.target.closest(".tab"),c=e.target.closest(".chip");
+ if(o){const i=o.dataset.i,k=+o.dataset.k;sel[i]===k?delete sel[i]:sel[i]=k;render()}
+ else if(tb){document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t===tb))}
+ else if(c){document.querySelectorAll(".chip").forEach(t=>t.classList.toggle("on",t===c))}
+});
+const shell=document.querySelector(".shell");
+function setMenu(open){shell.classList.toggle("collapsed",!open);burger.setAttribute("aria-expanded",open)}
+burger.addEventListener("click",()=>setMenu(shell.classList.contains("collapsed")));
+setMenu(innerWidth>900);
+render();
+</script>
+</body>
+</html>

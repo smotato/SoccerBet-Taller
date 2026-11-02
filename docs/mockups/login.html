@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SoccerBet · Iniciar sesión</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F4F7;--ink:#1E1423;--muted:#665D6B;--line:#E3DDE6;--pink:#9ABED6;--pink-d:#A63BB0;--pink-t:#FCE6FD;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Barlow,system-ui,sans-serif}
+.login{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
+.side{background:var(--pink);padding:48px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.side::before{content:"";position:absolute;right:90px;top:0;bottom:0;border-right:3px solid rgba(30,20,35,.14)}
+.side::after{content:"";position:absolute;right:-120px;top:50%;width:420px;height:420px;border:3px solid rgba(30,20,35,.14);border-radius:50%;transform:translateY(-50%)}
+.brand{font:700 30px "Barlow Condensed",sans-serif;display:flex;align-items:center;gap:10px}
+.ball{width:16px;height:16px;border-radius:50%;background:var(--ink)}
+h1{font:700 64px/.98 "Barlow Condensed",sans-serif;max-width:9ch;margin:0 0 16px;position:relative;z-index:1}
+.side p{max-width:34ch;position:relative;z-index:1;margin:0}
+.form{display:flex;align-items:center;justify-content:center;padding:32px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:32px;width:100%;max-width:400px}
+h2{font:700 32px "Barlow Condensed",sans-serif;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 20px}
+label{display:block;font-weight:600;font-size:14px;margin:14px 0 6px}
+input{width:100%;padding:11px 12px;border:1px solid #C9C0CE;border-radius:6px;font:inherit;color:var(--ink);background:#fff}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.btn{display:block;text-align:center;border-radius:6px;padding:12px;font-weight:600;margin-top:20px;background:var(--pink);color:var(--ink);text-decoration:none}
+.btn:hover{background:#EE7CF5}
+.foot{margin:16px 0 0;font-size:14px;color:var(--muted);text-align:center}
+.foot a{color:var(--pink-d);font-weight:600}
+@media(max-width:900px){.login{grid-template-columns:1fr}.side{padding:28px;min-height:240px}h1{font-size:44px}}
+</style>
+</head>
+<body>
+<section class="login">
+ <div class="side">
+  <div class="brand"><span class="ball"></span>SoccerBet</div>
+  <div>
+   <h1>Cada fecha de la liga, tu jugada.</h1>
+   <p>Apuesta en los partidos de la Liga BetPlay con tu saldo de pruebas. Proyecto académico, sin dinero real.</p>
+  </div>
+  <p style="font-size:13px">Pagos en modo prueba con Wompi. Solo mayores de 18 años.</p>
+ </div>
+ <div class="form">
+  <div class="card">
+   <h2>Iniciar sesión</h2>
+   <p class="sub">Entra con tu correo y contraseña.</p>
+   <label for="em">Correo electrónico</label>
+   <input id="em" type="email" placeholder="nombre@correo.com" autocomplete="email">
+   <label for="pw">Contraseña</label>
+   <input id="pw" type="password" placeholder="Tu contraseña" autocomplete="current-password">
+   <a class="btn" href="https://claude.ai/artifact/3UiVcfub41YGRoiKnnTBvX">Entrar</a>
+   <p class="foot"><a href="#">Olvidé mi contraseña</a></p>
+   <p class="foot">¿No tienes cuenta? <a href="#">Crear cuenta</a></p>
+  </div>
+ </div>
+</section>
+</body>
+</html>

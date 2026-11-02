@@ -1,0 +1,115 @@
+﻿@using System.Globalization
+@{
+    ViewData["Title"] = "Partidos";
+
+    // DATOS FIJOS TEMPORALES: se reemplazan por el ViewModel del home (PostgreSQL + MySQL) en la fase 3.
+    var partidos = new List<PartidoDemo>
+    {
+        new("live", "15:10", new("Llaneros F.C.", "LLA", "#1F6FB5", 0), new("Club Deportivo Junior", "JUN", "#C4372B", 0), new[] { 2.88m, 3.10m, 2.30m }, 59, true),
+        new("soon", "Hoy 18:00", new("Atlético Nacional", "NAL", "#2E7D4F"), new("Millonarios", "MIL", "#1F4E9C"), new[] { 2.35m, 3.10m, 2.90m }, 64, false),
+        new("soon", "Hoy 20:10", new("Deportivo Cali", "CAL", "#1E7B3A"), new("Independiente Santa Fe", "SFE", "#B5302B"), new[] { 2.60m, 3.05m, 2.70m }, 58, false)
+    };
+}
+
+@functions {
+    record EquipoDemo(string Nombre, string Sigla, string Color, int Goles = 0);
+    record PartidoDemo(string Grupo, string Hora, EquipoDemo Local, EquipoDemo Visitante, decimal[] Cuotas, int Mercados, bool EnVivo);
+}
+
+@{
+    // Renderiza una fila de partido. Cuotas con punto decimal (cultura invariante).
+    void Fila(PartidoDemo m, int i)
+    {
+        var etiquetas = new[] { m.Local.Nombre, "Empate", m.Visitante.Nombre };
+        <div class="match">
+            <div class="time">
+                @if (m.EnVivo) { <b>En vivo</b> }
+                @m.Hora
+            </div>
+            <div class="teams">
+                @foreach (var t in new[] { m.Local, m.Visitante })
+                {
+                    <div class="t">
+                        <span class="sh" style="background:@t.Color">@t.Sigla</span>@t.Nombre
+                        @if (m.EnVivo) { <span class="sc">@t.Goles</span> }
+                    </div>
+                }
+            </div>
+            <div class="right">
+                <span class="more">+@m.Mercados</span>
+                <div class="odds">
+                    @for (var k = 0; k < 3; k++)
+                    {
+                        <button type="button" class="odd" data-i="@i" aria-pressed="false">
+                            <small>@etiquetas[k]</small><b>@m.Cuotas[k].ToString("0.00", CultureInfo.InvariantCulture)</b>
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+}
+
+<div class="chips">
+    <button type="button" class="chip on">Todo</button>
+    <button type="button" class="chip">Fútbol</button>
+    <button type="button" class="chip">Jugadores</button>
+    <button type="button" class="chip">Datos</button>
+    <button type="button" class="chip">En vivo</button>
+</div>
+
+<div class="promos">
+    <div class="promo a"><h2>Recarga hoy y recibe saldo extra de pruebas</h2><span>Lo quiero</span></div>
+    <div class="promo b"><h2>Gana con dos goles de ventaja en tu apuesta</h2><span>Ver cómo</span></div>
+</div>
+
+<div class="tabs" role="tablist">
+    <button type="button" class="tab on">En vivo y próximo</button>
+    <button type="button" class="tab">Competición</button>
+    <button type="button" class="tab">Todo fútbol</button>
+</div>
+
+<section class="sec">
+    <div class="sec-head"><span class="tag">EN VIVO</span>En vivo ahora</div>
+    <div class="comp">Colombia / Liga BetPlay</div>
+    @for (var i = 0; i < partidos.Count; i++)
+    {
+        if (partidos[i].Grupo == "live") { Fila(partidos[i], i); }
+    }
+</section>
+
+<section class="sec solo">
+    <div class="sec-head"><span class="tag p">PRÓXIMO</span>Comenzando pronto</div>
+    <div class="comp">Colombia / Liga BetPlay</div>
+    @for (var i = 0; i < partidos.Count; i++)
+    {
+        if (partidos[i].Grupo == "soon") { Fila(partidos[i], i); }
+    }
+</section>
+
+@section Scripts {
+    <script>
+        // Interacción visual (sin apostar todavía): una cuota seleccionada por partido, pestañas y chips.
+        document.addEventListener('click', function (e) {
+            const odd = e.target.closest('.odd');
+            const tab = e.target.closest('.tab');
+            const chip = e.target.closest('.chip');
+
+            if (odd) {
+                const wasSel = odd.classList.contains('sel');
+                document.querySelectorAll('.odd[data-i="' + odd.dataset.i + '"]').forEach(function (o) {
+                    o.classList.remove('sel');
+                    o.setAttribute('aria-pressed', 'false');
+                });
+                if (!wasSel) {
+                    odd.classList.add('sel');
+                    odd.setAttribute('aria-pressed', 'true');
+                }
+            } else if (tab) {
+                document.querySelectorAll('.tab').forEach(function (t) { t.classList.toggle('on', t === tab); });
+            } else if (chip) {
+                document.querySelectorAll('.chip').forEach(function (c) { c.classList.toggle('on', c === chip); });
+            }
+        });
+    </script>
+}

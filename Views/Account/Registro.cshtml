@@ -1,0 +1,170 @@
+@{
+    ViewData["Title"] = "Crear cuenta";
+    // Mismo layout de pantalla completa que el login.
+    Layout = "_AuthLayout";
+}
+
+@* Token antiforgery (input oculto + cookie). El script lo envía en el encabezado RequestVerificationToken. *@
+@Html.AntiForgeryToken()
+
+<section class="login">
+    <partial name="_AuthSide" />
+    <div class="form">
+        <div class="card">
+            <h2>Crear cuenta</h2>
+            <p class="sub">Completa tus datos para registrarte.</p>
+
+            @* Cada input tiene debajo un <span class="field-error" id="err-{Campo}"> donde se muestra su error de validación. *@
+            <div class="row2">
+                <div>
+                    <label for="Nombres">Nombres</label>
+                    <input id="Nombres" type="text" maxlength="100" autocomplete="given-name" aria-describedby="err-Nombres">
+                    <span class="field-error" id="err-Nombres" role="alert"></span>
+                </div>
+                <div>
+                    <label for="Apellidos">Apellidos</label>
+                    <input id="Apellidos" type="text" maxlength="100" autocomplete="family-name" aria-describedby="err-Apellidos">
+                    <span class="field-error" id="err-Apellidos" role="alert"></span>
+                </div>
+            </div>
+
+            <label for="Email">Correo electrónico</label>
+            <input id="Email" type="email" maxlength="150" placeholder="nombre@correo.com" autocomplete="email" aria-describedby="err-Email">
+            <span class="field-error" id="err-Email" role="alert"></span>
+
+            <div class="row2">
+                <div>
+                    <label for="Documento">Documento</label>
+                    <input id="Documento" type="text" maxlength="50" autocomplete="off" aria-describedby="err-Documento">
+                    <span class="field-error" id="err-Documento" role="alert"></span>
+                </div>
+                <div>
+                    <label for="Telefono">Teléfono (opcional)</label>
+                    <input id="Telefono" type="tel" maxlength="30" autocomplete="tel" aria-describedby="err-Telefono">
+                    <span class="field-error" id="err-Telefono" role="alert"></span>
+                </div>
+            </div>
+
+            <label for="FechaNacimiento">Fecha de nacimiento</label>
+            <input id="FechaNacimiento" type="date" autocomplete="bday" aria-describedby="err-FechaNacimiento">
+            <span class="field-error" id="err-FechaNacimiento" role="alert"></span>
+
+            <label for="Password">Contraseña</label>
+            <input id="Password" type="password" maxlength="100" placeholder="Mínimo 8 caracteres" autocomplete="new-password" aria-describedby="err-Password">
+            <span class="field-error" id="err-Password" role="alert"></span>
+
+            <label for="ConfirmarPassword">Confirmar contraseña</label>
+            <input id="ConfirmarPassword" type="password" maxlength="100" placeholder="Repite tu contraseña" autocomplete="new-password" aria-describedby="err-ConfirmarPassword">
+            <span class="field-error" id="err-ConfirmarPassword" role="alert"></span>
+
+            <button type="button" id="btnRegistro" class="btn-pink">Crear cuenta</button>
+            <p class="foot">¿Ya tienes cuenta? <a asp-action="Login">Iniciar sesión</a></p>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        const campos = ['Nombres', 'Apellidos', 'Email', 'Telefono', 'Documento', 'FechaNacimiento', 'Password', 'ConfirmarPassword'];
+
+        function limpiarErrores() {
+            campos.forEach(function (c) {
+                document.getElementById('err-' + c).textContent = '';
+                const input = document.getElementById(c);
+                input.classList.remove('invalid');
+                input.removeAttribute('aria-invalid');
+            });
+        }
+
+        // errores: { Campo: "mensaje" }. Devuelve true si todos los campos se pudieron ubicar en el formulario.
+        function mostrarErrores(errores) {
+            let primero = null;
+            Object.keys(errores).forEach(function (clave) {
+                // Se compara sin distinguir mayúsculas, por si el JSON llega en camelCase.
+                const campo = campos.find(function (c) { return c.toLowerCase() === clave.toLowerCase(); });
+                if (!campo) return;
+                document.getElementById('err-' + campo).textContent = errores[clave];
+                const input = document.getElementById(campo);
+                input.classList.add('invalid');
+                input.setAttribute('aria-invalid', 'true');
+                if (!primero) primero = input;
+            });
+            if (primero) primero.focus();
+            return primero !== null;
+        }
+
+        async function registrar() {
+            const valor = function (id) { return document.getElementById(id).value; };
+
+            const datos = {
+                nombres: valor('Nombres'),
+                apellidos: valor('Apellidos'),
+                email: valor('Email'),
+                telefono: valor('Telefono'),
+                documento: valor('Documento'),
+                fechaNacimiento: valor('FechaNacimiento') || null,
+                password: valor('Password'),
+                confirmarPassword: valor('ConfirmarPassword')
+            };
+
+            if (Loader.isBusy()) return; // ya hay un registro en curso
+            limpiarErrores();
+            Loader.show();
+
+            try {
+                const response = await fetch('/Account/Registro', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(datos)
+                });
+
+                // 400 = token antiforgery inválido o vencido (la página lleva abierta mucho tiempo o se reinició la app).
+                if (response.status === 400) {
+                    Loader.hide();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'La página caducó',
+                        text: 'Recárgala e inténtalo de nuevo.',
+                        confirmButtonColor: '#A63BB0'
+                    });
+                    return;
+                }
+
+                const data = await response.json();
+                Loader.hide(); // antes de mostrar errores o el SweetAlert
+
+                if (data.exito) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Cuenta creada',
+                        text: data.mensaje,
+                        confirmButtonColor: '#9ABED6'
+                    }).then(function () {
+                        window.location.href = '/Account/Login';
+                    });
+                } else if (data.errores && mostrarErrores(data.errores)) {
+                    // Los errores de validación se muestran debajo de sus campos: sin alerta.
+                } else {
+                    // Error general (no asociado a un campo): se mantiene el SweetAlert.
+                    Swal.fire({
+                        icon: 'error',
+                        title: data.mensaje || 'No se pudo completar el registro.',
+                        confirmButtonColor: '#A63BB0'
+                    });
+                }
+            } catch (error) {
+                Loader.hide();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de conexión',
+                    text: 'No se pudo contactar al servidor.'
+                });
+            }
+        }
+
+        document.getElementById('btnRegistro').addEventListener('click', registrar);
+    </script>
+}

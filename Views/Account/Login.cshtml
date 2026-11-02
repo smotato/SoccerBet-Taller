@@ -1,0 +1,92 @@
+﻿@{
+    ViewData["Title"] = "Iniciar sesión";
+    // Pantalla a pantalla completa (sin barra de navegación): usa su propio layout.
+    Layout = "_AuthLayout";
+}
+
+@* Token antiforgery (input oculto + cookie). El script lo envía en el encabezado RequestVerificationToken. *@
+@Html.AntiForgeryToken()
+
+<section class="login">
+    <partial name="_AuthSide" />
+    <div class="form">
+        <div class="card">
+            <h2>Iniciar sesión</h2>
+            <p class="sub">Entra con tu correo y contraseña.</p>
+            <label for="Username">Correo electrónico</label>
+            <input id="Username" type="email" placeholder="nombre@correo.com" autocomplete="email">
+            <label for="Password">Contraseña</label>
+            <input id="Password" type="password" placeholder="Tu contraseña" autocomplete="current-password">
+            <button type="button" id="btnLogin" class="btn-pink">Entrar</button>
+            <p class="foot"><a href="#">Olvidé mi contraseña</a></p>
+            <p class="foot">¿No tienes cuenta? <a asp-action="Registro">Crear cuenta</a></p>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        async function iniciarSesion() {
+            const username = document.getElementById('Username').value;
+            const password = document.getElementById('Password').value;
+
+            if (Loader.isBusy()) return; // ya hay una validación en curso
+            Loader.show();
+
+            try {
+                const response = await fetch('/Account/ValidarLogin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ username: username, password: password })
+                });
+
+                // 400 = token antiforgery inválido o vencido (la página lleva abierta mucho tiempo o se reinició la app).
+                if (response.status === 400) {
+                    Loader.hide();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'La página caducó',
+                        text: 'Recárgala e inténtalo de nuevo.',
+                        confirmButtonColor: '#A63BB0'
+                    });
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.exito) {
+                    // Login correcto: se redirige al home sin alerta. El loader NO se oculta:
+                    // sigue visible hasta que el navegador cambia de página.
+                    // Si venía redirigido por [Authorize] (?ReturnUrl=...), vuelve a esa página. Solo se aceptan
+                    // rutas internas ("/algo"), nunca "//otro-sitio" ni "/\otro-sitio", para evitar redirecciones abiertas.
+                    const retorno = new URLSearchParams(window.location.search).get('ReturnUrl');
+                    const destino = (retorno && /^\/(?![\/\\])/.test(retorno)) ? retorno : '/Home/Index';
+                    window.location.href = destino;
+                } else {
+                    Loader.hide(); // antes del SweetAlert, que quedaría por debajo del loader
+                    Swal.fire({
+                        icon: 'error',
+                        title: data.mensaje || 'Datos Incorrectos!',
+                        confirmButtonColor: '#A63BB0'
+                    });
+                }
+            } catch (error) {
+                Loader.hide();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de conexión',
+                    text: 'No se pudo contactar al servidor.'
+                });
+            }
+        }
+
+        document.getElementById('btnLogin').addEventListener('click', iniciarSesion);
+        // Enter dentro de los campos también envía el formulario
+        document.querySelectorAll('#Username, #Password').forEach(function (el) {
+            el.addEventListener('keydown', function (e) { if (e.key === 'Enter') iniciarSesion(); });
+        });
+    </script>
+}

@@ -1,0 +1,85 @@
+/* Estilos globales del layout principal (cabecera + menu lateral). Tomados de docs/mockups/home.html.
+   Las pantallas de login/registro NO cargan este archivo: usan auth.css con _AuthLayout. */
+:root{--bg:#F6F4F7;--ink:#1E1423;--muted:#665D6B;--line:#E3DDE6;--pink:#9ABED6;--pink-d:#A63BB0;--pink-t:#FCE6FD;--red:#C4372B;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Barlow,system-ui,sans-serif}
+button{font:inherit;cursor:pointer;color:inherit}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.disp{font-family:"Barlow Condensed",sans-serif;font-weight:700}
+
+/* cabecera */
+.app-header{background:var(--pink);position:sticky;top:env(safe-area-inset-top,0px);z-index:10}
+.bar{max-width:1320px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:28px}
+.brand{font-size:30px;display:flex;align-items:center;gap:8px}
+.brand i{font-size:26px;line-height:1}
+.main-nav{display:flex;gap:4px;flex:1}
+.main-nav a{padding:8px 12px;font-weight:600;border-bottom:3px solid transparent}
+.main-nav a.on{border-color:var(--ink)}
+.wallet{display:flex;align-items:center;gap:12px}
+.bal{text-align:right;line-height:1.15;font-size:12px}.bal b{display:block;font-size:17px}
+.btn{background:var(--ink);color:#fff;border:0;border-radius:6px;padding:8px 14px;font-weight:600}
+.avatar{width:36px;height:36px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:700}
+a.btn{display:inline-block;line-height:1.5}
+.link-sec{font-weight:600;text-decoration:underline;text-underline-offset:3px;padding:8px 4px}
+.logout{width:36px;height:36px;border:0;border-radius:50%;background:transparent;display:grid;place-items:center;font-size:20px;color:var(--ink)}
+.logout:hover{background:rgba(30,20,35,.12)}
+.wallet form{margin:0}
+.burger{width:40px;height:40px;border:0;background:transparent;border-radius:6px;display:grid;place-content:center;gap:5px}
+.burger:hover{background:rgba(30,20,35,.12)}
+.burger span{display:block;width:22px;height:3px;background:var(--ink);border-radius:2px}
+
+/* estructura: menu lateral + contenido */
+.shell{display:flex;align-items:flex-start}
+.shell main{flex:1;min-width:0;max-width:1100px;margin:0 auto;padding:20px}
+.side{background:var(--pink);width:260px;flex:none;position:sticky;top:calc(56px + env(safe-area-inset-top,0px));height:calc(100vh - 56px);overflow-x:hidden;overflow-y:auto;border-top:1px solid rgba(30,20,35,.15);transition:width .2s}
+.side>*{min-width:260px}
+.shell.collapsed .side{width:0}
+.search{display:flex;padding:12px;border-bottom:1px solid rgba(30,20,35,.15)}
+.search input{flex:1;min-width:0;background:#fff;border:1px solid transparent;border-right:0;border-radius:6px 0 0 6px;padding:8px 10px;font:inherit}
+.search button{background:var(--ink);color:#fff;border:0;border-radius:0 6px 6px 0;padding:0 12px}
+.side h3{margin:0;padding:14px 16px 6px;font-size:13px;color:var(--ink);font-family:Barlow,sans-serif;font-weight:600}
+.side a{display:flex;align-items:center;gap:10px;padding:11px 16px;font-weight:600;border-left:4px solid transparent}
+.side a:hover{background:rgba(255,255,255,.45)}
+.side a.on{background:#fff;border-color:var(--ink)}
+.side a.sub{padding-left:42px;font-weight:500}
+.side a i{width:20px;text-align:center;font-size:17px;line-height:1}
+
+/* contenido del home: chips, banners, pestanas, partidos y cuotas */
+.chips{display:flex;gap:8px;overflow-x:auto;margin-bottom:14px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:99px;padding:7px 16px;white-space:nowrap;font-weight:500}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.promos{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.promo{border-radius:10px;padding:18px 20px;min-height:110px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start}
+.promo.a{background:var(--pink)}.promo.b{background:var(--ink);color:#fff}
+.promo h2{margin:0;font:700 26px/1.05 "Barlow Condensed",sans-serif}
+.promo span{font-size:13px;font-weight:600;border-radius:5px;padding:5px 12px}
+.promo.a span{background:var(--ink);color:#fff}.promo.b span{background:var(--pink);color:var(--ink)}
+.tabs{background:#fff;border:1px solid var(--line);border-radius:10px 10px 0 0;display:flex;justify-content:center;gap:28px}
+.tab{background:none;border:0;border-bottom:3px solid transparent;padding:14px 4px;color:var(--muted);font-weight:500;font-size:16px}
+.tab.on{color:var(--ink);border-color:var(--pink)}
+.sec{background:#fff;border:1px solid var(--line);border-top:0;border-radius:0 0 10px 10px;margin-bottom:16px;overflow:hidden}
+.sec.solo{border-top:1px solid var(--line);border-radius:10px}
+.sec-head{background:var(--ink);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px;font-weight:600}
+.tag{background:var(--red);font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px}
+.tag.p{background:var(--pink);color:var(--ink)}
+.comp{padding:10px 16px;color:var(--pink-d);font-weight:600;font-size:14px;border-bottom:1px solid var(--line)}
+.match{display:grid;grid-template-columns:70px 1fr auto;gap:14px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.time{font-size:13px;color:var(--muted);line-height:1.3}.time b{display:block;color:var(--red)}
+.teams{display:grid;gap:6px;font-weight:600}
+.t{display:flex;align-items:center;gap:10px}
+.sh{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff;flex:none}
+.sc{margin-left:auto;font:700 20px "Barlow Condensed",sans-serif;padding-right:16px}
+.right{display:flex;align-items:center;gap:14px}
+.more{font-size:13px;color:var(--muted)}
+.odds{display:grid;grid-template-columns:repeat(3,88px);gap:8px}
+.odd{border:1px solid #CFC6D4;background:#fff;border-radius:6px;padding:6px 4px;text-align:center;line-height:1.2}
+.odd small{display:block;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.odd b{font:700 20px "Barlow Condensed",sans-serif}
+.odd:hover{border-color:var(--pink-d)}
+.odd.sel{background:var(--pink);border-color:var(--pink-d)}.odd.sel small{color:var(--ink)}
+
+@media(max-width:900px){.promos{grid-template-columns:1fr}}
+@media(max-width:640px){.match{grid-template-columns:1fr}.odds{grid-template-columns:repeat(3,1fr)}.right{flex-direction:column;align-items:stretch}}
+@media(max-width:900px){.side{position:fixed;left:0;z-index:9;box-shadow:4px 0 16px rgba(30,20,35,.2)}.shell.collapsed .side{box-shadow:none}.main-nav{display:none}.bar{gap:12px}.wallet{margin-left:auto}}

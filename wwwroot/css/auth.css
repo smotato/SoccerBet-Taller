@@ -1,0 +1,54 @@
+/* Estilos de las pantallas de autenticacion (login/registro). Tomados de docs/mockups/login.html */
+:root{--bg:#F6F4F7;--ink:#1E1423;--muted:#665D6B;--line:#E3DDE6;--pink:#9ABED6;--pink-d:#A63BB0;--pink-t:#FCE6FD;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Barlow,system-ui,sans-serif}
+.login{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
+.side{background:var(--pink);padding:48px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.side::before{content:"";position:absolute;right:90px;top:0;bottom:0;border-right:3px solid rgba(30,20,35,.14)}
+.side::after{content:"";position:absolute;right:-120px;top:50%;width:420px;height:420px;border:3px solid rgba(30,20,35,.14);border-radius:50%;transform:translateY(-50%)}
+.brand{font:700 30px "Barlow Condensed",sans-serif;display:flex;align-items:center;gap:10px}
+.brand i{font-size:28px;line-height:1}
+.hero{position:relative;z-index:1}
+.login h1{font:700 72px/.95 "Barlow Condensed",sans-serif;margin:0 0 26px}
+.legal{position:relative;z-index:1;margin:0;font-size:13px;max-width:40ch}
+
+/* ticket decorativo: partido de ejemplo con cuotas 1-X-2 */
+.ticket{background:#fff;border-radius:12px;padding:16px 18px;max-width:330px;box-shadow:0 14px 30px rgba(30,20,35,.22);transform:rotate(-3deg);animation:ticket-flota 5s ease-in-out infinite}
+.ticket-head{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:12px}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#C4372B;animation:ticket-pulso 1.6s ease-in-out infinite}
+.ticket-teams{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:600;margin-bottom:14px}
+.ticket-teams .t{display:flex;align-items:center;gap:8px}
+.ticket-teams .vs{color:var(--muted);font-size:12px}
+.sh{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:9px;font-weight:700;color:#fff;flex:none}
+.ticket-odds{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ticket-odds span{border:1px solid #CFC6D4;border-radius:6px;padding:6px 4px;text-align:center;line-height:1.2}
+.ticket-odds small{display:block;color:var(--muted);font-size:11px}
+.ticket-odds b{font:700 22px "Barlow Condensed",sans-serif}
+.ticket-odds .pick{background:var(--pink);border-color:var(--ink)}
+.ticket-odds .pick small{color:var(--ink)}
+@keyframes ticket-flota{50%{transform:rotate(-3deg) translateY(-8px)}}
+@keyframes ticket-pulso{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.ticket,.live-dot{animation:none}}
+
+/* ventajas */
+.perks{list-style:none;margin:26px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.perks li{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.6);border-radius:99px;padding:6px 14px 6px 10px;font-weight:600;font-size:14px}
+.perks i{font-size:16px;line-height:1}
+.form{display:flex;align-items:center;justify-content:center;padding:32px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:32px;width:100%;max-width:400px}
+.card h2{font:700 32px "Barlow Condensed",sans-serif;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 20px}
+.card label{display:block;font-weight:600;font-size:14px;margin:14px 0 6px}
+.card input{width:100%;padding:11px 12px;border:1px solid #C9C0CE;border-radius:6px;font:inherit;color:var(--ink);background:#fff}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.btn-pink{display:block;width:100%;text-align:center;border:0;border-radius:6px;padding:12px;font:inherit;font-weight:600;margin-top:20px;background:var(--pink);color:var(--ink);text-decoration:none;cursor:pointer}
+.btn-pink:hover{background:#EE7CF5}
+/* errores de validacion debajo de cada input */
+.field-error{display:block;color:#C4372B;font-size:13px;font-weight:500;margin-top:4px}
+.field-error:empty{display:none}
+.card input.invalid{border-color:#C4372B}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.row2{grid-template-columns:1fr}}
+.foot{margin:16px 0 0;font-size:14px;color:var(--muted);text-align:center}
+.foot a{color:var(--pink-d);font-weight:600}
+@media(max-width:900px){.login{grid-template-columns:1fr}.side{padding:28px;min-height:240px;gap:18px}.login h1{font-size:44px;margin-bottom:14px}.ticket{display:none}.perks{margin-top:0}}

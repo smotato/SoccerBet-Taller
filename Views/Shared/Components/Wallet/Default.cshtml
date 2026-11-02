@@ -1,0 +1,20 @@
+@model CasaApuestas.Models.ViewModels.WalletViewModel
+
+<div class="wallet">
+    @if (Model.EsCliente)
+    {
+        <div class="bal">Saldo<b>@Model.SaldoTexto</b></div>
+        @* Recargar: sin accion por ahora (RF12, Wompi). *@
+        <button class="btn" type="button">Recargar</button>
+        <span class="avatar" title="@Model.Nombre" aria-label="Usuario: @Model.Nombre">@Model.Iniciales</span>
+        @* POST con token antiforgery (el tag helper lo agrega solo); data-loader muestra el loader al enviar. *@
+        <form asp-controller="Account" asp-action="Logout" method="post" data-loader>
+            <button type="submit" class="logout" title="Cerrar sesión" aria-label="Cerrar sesión"><i class="bi bi-box-arrow-right" aria-hidden="true"></i></button>
+        </form>
+    }
+    else
+    {
+        <a class="link-sec" asp-controller="Account" asp-action="Registro">Registrarse</a>
+        <a class="btn" asp-controller="Account" asp-action="Login">Iniciar sesión</a>
+    }
+</div>

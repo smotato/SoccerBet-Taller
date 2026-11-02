@@ -1,0 +1,40 @@
+## Visual Studio / .NET
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.DotSettings.user
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+.idea/
+.vscode/
+
+## Publicacion y paquetes
+publish/
+*.nupkg
+*.log
+TestResults/
+
+## Secretos y configuracion local (nunca al repo)
+secrets.json
+appsettings.Local.json
+*.pfx
+.env
+.env.*
+!.env.example
+firebase*.json
+*serviceAccount*.json
+
+## Docker: volumenes de datos locales
+data/
+pgdata/
+mysqldata/
+mongodata/
+
+## SO
+Thumbs.db
+.DS_Store
