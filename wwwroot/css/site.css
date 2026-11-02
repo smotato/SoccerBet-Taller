@@ -1,6 +1,6 @@
 /* Estilos globales del layout principal (cabecera + menu lateral). Tomados de docs/mockups/home.html.
    Las pantallas de login/registro NO cargan este archivo: usan auth.css con _AuthLayout. */
-:root{--bg:#F6F4F7;--ink:#1E1423;--muted:#665D6B;--line:#E3DDE6;--pink:#9ABED6;--pink-d:#A63BB0;--pink-t:#FCE6FD;--red:#C4372B;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{--bg:#F6F4F7;--ink:#1E1423;--muted:#665D6B;--line:#E3DDE6;--pink:#9ABED6;--pink-d:#2F6A8F;--pink-t:#E3EEF5;--red:#C4372B;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:inherit}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Barlow,system-ui,sans-serif}

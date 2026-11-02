@@ -2,7 +2,7 @@
    Se controla desde wwwroot/js/loader.js (Loader.show / Loader.hide). */
 .loader{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(246,244,247,.78);backdrop-filter:blur(2px);cursor:progress}
 .loader[hidden]{display:none}
-.loader-spinner{width:54px;height:54px;border-radius:50%;border:6px solid #FCE6FD;border-top-color:#9ABED6;border-right-color:#A63BB0;animation:loader-giro .8s linear infinite}
+.loader-spinner{width:54px;height:54px;border-radius:50%;border:6px solid #E3EEF5;border-top-color:#9ABED6;border-right-color:#2F6A8F;animation:loader-giro .8s linear infinite}
 .loader-text{font:600 15px Barlow,system-ui,sans-serif;color:#1E1423}
 @keyframes loader-giro{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.loader-spinner{animation-duration:2.4s}}

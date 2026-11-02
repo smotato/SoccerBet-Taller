@@ -36,7 +36,7 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
 
 ## Diseno (tokens)
 Fondo claro `#F6F4F7`, texto `#1E1423`, color principal **`#9ABED6`** (azul claro; la variable CSS se sigue llamando `--pink`),
-`#A63BB0` para texto/enlaces secundarios (pendiente de revisar contra el azul).
+`#2F6A8F` (azul oscuro) para texto, enlaces y botones de alerta; `#E3EEF5` para fondos claros; hover del boton principal `#82AAC6`.
 Tipografias: Barlow Condensed (titulos) y Barlow (texto). Marca: icono de copa (`bi-trophy-fill`) + "SoccerBet".
 Home: cabecera azul con hamburguesa, menu lateral ocultable, banners, pestanas, lista de partidos con cuotas 1-X-2.
 Sin seccion de cupon.
