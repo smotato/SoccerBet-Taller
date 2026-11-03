@@ -34,6 +34,15 @@ builder.Services.AddAntiforgery(options => options.HeaderName = "RequestVerifica
 // Servicios de negocio (Services/): un caso de uso por clase, inyectados por interfaz.
 builder.Services.AddScoped<CasaApuestas.Services.ISaldoService, CasaApuestas.Services.SaldoService>();
 
+// Wompi (sandbox). Las llaves vienen de user-secrets; si falta alguna o no es de pruebas, la app NO arranca
+// (mensaje sin valores). El HttpClient tipado enviara la llave privada solo en el encabezado Authorization.
+builder.Services.Configure<CasaApuestas.Services.Wompi.WompiOptions>(
+    builder.Configuration.GetSection(CasaApuestas.Services.Wompi.WompiOptions.Seccion));
+builder.Configuration.GetSection(CasaApuestas.Services.Wompi.WompiOptions.Seccion)
+    .Get<CasaApuestas.Services.Wompi.WompiOptions>()!.ValidarSandbox();
+builder.Services.AddHttpClient<CasaApuestas.Services.Wompi.IWompiClient, CasaApuestas.Services.Wompi.WompiClient>();
+builder.Services.AddSingleton<CasaApuestas.Services.Wompi.IWompiCheckoutBuilder, CasaApuestas.Services.Wompi.WompiCheckoutBuilder>();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
