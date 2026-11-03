@@ -158,6 +158,11 @@ END;
 GO
 
 /* ---------- 7. sp_AcreditarSaldo: reemplaza a sp_RealizarDeposito (el log del pago vive en Firebase) ---------- */
+/* Idempotente por @concepto: la app usa un concepto unico por pago (p. ej. 'Recarga Wompi <referencia>').
+   La comprobacion se hace DESPUES de bloquear la fila de Saldo (UPDLOCK, HOLDLOCK): dos llamadas simultaneas para el
+   mismo cliente se serializan y la segunda ya ve el movimiento de la primera. Si el concepto ya existe NO acredita
+   ni lanza error: devuelve ya_acreditado = 1 para que la app marque acreditado = true en Firestore.
+   Devuelve una fila con una columna: ya_acreditado (BIT). 0 = se acredito ahora, 1 = ya estaba acreditado. */
 CREATE OR ALTER PROCEDURE dbo.sp_AcreditarSaldo
     @id_cliente INT,
     @importe    DECIMAL(18,2),
@@ -166,6 +171,7 @@ AS
 BEGIN
     SET NOCOUNT ON; SET XACT_ABORT ON;
     DECLARE @id_saldo BIGINT;
+    DECLARE @ya_acreditado BIT = 0;
     IF @importe <= 0 THROW 50010, N'El importe debe ser mayor que cero.', 1;
     IF NOT EXISTS (SELECT 1 FROM Cliente WHERE id_cliente = @id_cliente AND estado = 'ACTIVO')
         THROW 50011, N'El cliente no existe o no está activo.', 1;
@@ -173,11 +179,21 @@ BEGIN
         BEGIN TRANSACTION;
         SELECT @id_saldo = id_saldo FROM Saldo WITH (UPDLOCK, HOLDLOCK) WHERE id_cliente = @id_cliente;
         IF @id_saldo IS NULL THROW 50012, N'El cliente no tiene saldo creado.', 1;
-        UPDATE Saldo SET saldo_actual = saldo_actual + @importe, fecha_actualizacion = SYSDATETIME()
-        WHERE id_saldo = @id_saldo;
-        INSERT INTO Movimiento_Saldo (id_saldo, importe, tipo, concepto)
-        VALUES (@id_saldo, @importe, 'CREDITO', @concepto);
+
+        IF EXISTS (SELECT 1 FROM Movimiento_Saldo
+                   WHERE id_saldo = @id_saldo AND tipo = 'CREDITO' AND concepto = @concepto)
+        BEGIN
+            SET @ya_acreditado = 1;   -- ya se acredito antes: no se toca el saldo
+        END
+        ELSE
+        BEGIN
+            UPDATE Saldo SET saldo_actual = saldo_actual + @importe, fecha_actualizacion = SYSDATETIME()
+            WHERE id_saldo = @id_saldo;
+            INSERT INTO Movimiento_Saldo (id_saldo, importe, tipo, concepto)
+            VALUES (@id_saldo, @importe, 'CREDITO', @concepto);
+        END
         COMMIT TRANSACTION;
+        SELECT @ya_acreditado AS ya_acreditado;
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
