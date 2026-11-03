@@ -1,0 +1,16 @@
+@model CasaApuestas.Models.ViewModels.RecargaResultadoViewModel
+@{
+    ViewData["Title"] = "Resultado de la recarga";
+}
+
+<section class="rc">
+    <div class="rc-card rc-result @Model.Tono">
+        <i class="bi @Model.Icono rc-big" aria-hidden="true"></i>
+        <h1 class="disp rc-title">@Model.Titulo</h1>
+        <p>@Model.Mensaje</p>
+        <div class="rc-actions">
+            <a class="btn" asp-controller="Recarga" asp-action="Index">Mis recargas</a>
+            <a class="link-sec" asp-controller="Home" asp-action="Index">Volver al inicio</a>
+        </div>
+    </div>
+</section>

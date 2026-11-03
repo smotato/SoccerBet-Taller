@@ -1,0 +1,26 @@
+@model CasaApuestas.Services.Wompi.CheckoutData
+@{
+    ViewData["Title"] = "Redirigiendo a Wompi";
+}
+
+@* Web Checkout de Wompi: formulario GET a checkout.wompi.co/p/ con los nombres de parametro de la documentacion oficial.
+   Todo lo que hay aqui es publico (llave publica, referencia, monto en centavos y firma de integridad);
+   el secreto de integridad nunca sale del servidor. *@
+<section class="rc">
+    <h1 class="disp rc-title">Redirigiendo a Wompi…</h1>
+    <p class="rc-sub">Te estamos llevando a la pasarela de pagos. Si no ocurre automáticamente, pulsa el botón.</p>
+
+    <form id="wompi-form" action="@Model.CheckoutUrl" method="GET">
+        <input type="hidden" name="public-key" value="@Model.PublicKey" />
+        <input type="hidden" name="currency" value="@Model.Moneda" />
+        <input type="hidden" name="amount-in-cents" value="@Model.MontoEnCentavos" />
+        <input type="hidden" name="reference" value="@Model.Referencia" />
+        <input type="hidden" name="signature:integrity" value="@Model.FirmaIntegridad" />
+        <input type="hidden" name="redirect-url" value="@Model.RedirectUrl" />
+        <button type="submit" class="btn rc-submit">Ir a pagar</button>
+    </form>
+</section>
+
+@section Scripts {
+    <script>document.getElementById('wompi-form').submit();</script>
+}

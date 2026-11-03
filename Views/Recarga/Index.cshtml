@@ -1,0 +1,77 @@
+@model CasaApuestas.Models.ViewModels.RecargaIndexViewModel
+@{
+    ViewData["Title"] = "Recargar saldo";
+    var error = TempData["Error"] as string ?? ViewBag.Error as string;
+}
+
+<section class="rc">
+    <h1 class="disp rc-title">Recargar saldo</h1>
+    <p class="rc-sub">Paga con Wompi. Tu saldo se acredita cuando el pago es aprobado.</p>
+
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="rc-alert bad" role="alert"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>@error</div>
+    }
+
+    <div class="rc-card">
+        <form asp-action="Iniciar" method="post" data-loader id="form-recarga">
+            <label for="monto" class="rc-label">Monto a recargar (COP)</label>
+            <input id="monto" name="monto" type="number" inputmode="numeric" class="rc-input"
+                   min="@Model.Minimo" max="@Model.Maximo" step="1000" required placeholder="20000" />
+            <div class="rc-quick" role="group" aria-label="Montos rápidos">
+                @foreach (var m in new[] { 10000, 20000, 50000, 100000 })
+                {
+                    <button type="button" class="chip" data-monto="@m">$ @m.ToString("N0", System.Globalization.CultureInfo.InvariantCulture).Replace(',', '.')</button>
+                }
+            </div>
+            <p class="rc-hint">Mínimo @Model.MinimoTexto · Máximo @Model.MaximoTexto</p>
+            <button type="submit" class="btn rc-submit"><i class="bi bi-credit-card" aria-hidden="true"></i> Pagar con Wompi</button>
+        </form>
+
+        <div class="rc-test">
+            <b><i class="bi bi-info-circle" aria-hidden="true"></i> Modo de pruebas</b>
+            Tarjeta aprobada <code>4242 4242 4242 4242</code> · rechazada <code>4111 1111 1111 1111</code>
+            (fecha futura y CVC de 3 dígitos). No se cobra dinero real.
+        </div>
+    </div>
+
+    <h2 class="disp rc-h2">Mis recargas pendientes</h2>
+    @if (Model.Pendientes.Count == 0)
+    {
+        <p class="rc-empty">No tienes recargas pendientes.</p>
+    }
+    else
+    {
+        <div class="rc-card rc-list">
+            @foreach (var p in Model.Pendientes)
+            {
+                <div class="rc-row">
+                    <div>
+                        <b>@p.ImporteTexto</b>
+                        <small>@p.FechaTexto · @p.Estado</small>
+                    </div>
+                    @if (p.PuedeVerificar)
+                    {
+                        <form asp-action="Verificar" method="post" data-loader>
+                            <input type="hidden" name="id" value="@p.IdTransaccion" />
+                            <button type="submit" class="btn">Verificar</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <small class="rc-nover">Aún no hay una transacción para consultar. Si ya pagaste, vuelve desde Wompi al sitio.</small>
+                    }
+                </div>
+            }
+        </div>
+    }
+</section>
+
+@section Scripts {
+    <script>
+        // Montos rápidos: solo rellenan el campo; el servidor valida de nuevo el monto.
+        document.querySelectorAll('[data-monto]').forEach(function (b) {
+            b.addEventListener('click', function () { document.getElementById('monto').value = b.dataset.monto; });
+        });
+    </script>
+}

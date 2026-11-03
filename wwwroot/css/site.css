@@ -83,3 +83,34 @@ a.btn{display:inline-block;line-height:1.5}
 @media(max-width:900px){.promos{grid-template-columns:1fr}}
 @media(max-width:640px){.match{grid-template-columns:1fr}.odds{grid-template-columns:repeat(3,1fr)}.right{flex-direction:column;align-items:stretch}}
 @media(max-width:900px){.side{position:fixed;left:0;z-index:9;box-shadow:4px 0 16px rgba(30,20,35,.2)}.shell.collapsed .side{box-shadow:none}.main-nav{display:none}.bar{gap:12px}.wallet{margin-left:auto}}
+
+/* recarga de saldo (RF12) */
+.rc{max-width:640px;margin:0 auto}
+.rc-title{margin:0 0 4px;font-size:34px;line-height:1.1}
+.rc-sub{margin:0 0 16px;color:var(--muted)}
+.rc-h2{margin:24px 0 10px;font-size:24px}
+.rc-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+.rc-label{display:block;font-weight:600;margin-bottom:6px}
+.rc-input{width:100%;border:1px solid #CFC6D4;border-radius:6px;padding:10px 12px;font:inherit;font-size:18px}
+.rc-quick{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+.rc-quick .chip{cursor:pointer}.rc-quick .chip:hover{border-color:var(--pink-d)}
+.rc-hint{margin:6px 0 14px;font-size:13px;color:var(--muted)}
+.rc-submit{padding:10px 18px;font-size:16px}
+.rc-submit:hover{background:#3a2a42}
+.rc-test{margin-top:16px;padding:10px 12px;background:var(--pink-t);border-radius:6px;font-size:13px;color:var(--pink-d)}
+.rc-test b{display:block;margin-bottom:2px}
+.rc-test code{background:#fff;padding:1px 5px;border-radius:4px;color:var(--ink)}
+.rc-alert{display:flex;gap:10px;align-items:center;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-weight:600}
+.rc-alert.bad{background:#FBE9E7;color:var(--red)}
+.rc-empty{color:var(--muted)}
+.rc-list{padding:0}
+.rc-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 18px;border-bottom:1px solid var(--line)}
+.rc-row:last-child{border-bottom:0}
+.rc-row b{display:block;font-size:17px}.rc-row small{color:var(--muted)}
+.rc-row form{margin:0}
+.rc-nover{max-width:260px;text-align:right}
+.rc-result{text-align:center;padding:32px 24px}
+.rc-big{font-size:56px;line-height:1}
+.rc-result.ok .rc-big{color:#2E7D4F}.rc-result.warn .rc-big{color:var(--pink-d)}.rc-result.bad .rc-big{color:var(--red)}
+.rc-actions{display:flex;justify-content:center;align-items:center;gap:16px;margin-top:18px}
+@media(max-width:640px){.rc-row{flex-direction:column;align-items:flex-start}.rc-nover{text-align:left}}
