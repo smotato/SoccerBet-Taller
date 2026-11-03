@@ -1,7 +1,10 @@
 # Firebase (Firestore): pagos Wompi (reemplaza la tabla Log_Pago)
 
-Coleccion `pagos`. **ID del documento = `{proveedor}_{id_transaccion}`** (ej. `wompi_11004-1730400000-12345`).
-Reemplaza la restriccion UNIQUE(proveedor, id_transaccion): si el webhook llega repetido, se actualiza el mismo documento.
+Coleccion `pagos`. **ID del documento = `{proveedor}_{referencia}`** (ej. `wompi_SB-12-3f9a...`).
+La referencia la genera SoccerBet ANTES de pagar, asi el documento existe desde el inicio (el `id_transaccion` de Wompi aun
+no se conoce y se llena cuando el usuario vuelve del checkout). Reemplaza la restriccion UNIQUE(proveedor, id_transaccion):
+al ser el ID determinista, crear dos veces el mismo pago falla y un evento repetido solo actualiza el mismo documento.
+Wompi solo permite consultar una transaccion por su id (`GET /v1/transactions/{id}`), no por referencia.
 
 | Campo | Tipo | Notas |
 |---|---|---|
@@ -16,13 +19,22 @@ Reemplaza la restriccion UNIQUE(proveedor, id_transaccion): si el webhook llega 
 | acreditado | bool | `true` cuando ya se sumo al saldo (evita acreditar dos veces) |
 | payload | map | respuesta/webhook completo de Wompi |
 | fecha, fecha_actualizacion | timestamp | |
+| acreditando_desde | timestamp (opcional) | "reclamo": hora en que una peticion empezo a acreditar. Se borra al terminar. Un reclamo con mas de `Wompi:ReclamoVencimientoMinutos` (2) se considera abandonado y se puede retomar |
+| fecha_acreditacion | timestamp (opcional) | cuando se marco `acreditado=true` |
 
 Indice compuesto: `id_cliente ASC, fecha DESC`.
 
 Flujo de recarga (saga):
 1. La app crea el documento en estado `PENDIENTE` con `acreditado=false`.
-2. Wompi (sandbox) llama al webhook; la app valida la firma del evento y actualiza `estado`.
-3. Si `APROBADO` y `acreditado=false`: ejecuta `sp_AcreditarSaldo` en SQL Server y marca `acreditado=true` (en una transaccion de Firestore).
+2. El usuario paga en el Web Checkout y vuelve a `/Recarga/Retorno?id=...` (o pulsa "Verificar" en la lista de pendientes).
+   La app consulta la transaccion REAL a Wompi (llave privada), valida referencia, cliente, monto y moneda, y actualiza `estado`.
+   (Segunda etapa: el webhook de Wompi, validado con `Wompi:EventsSecret`, hara esta misma actualizacion.)
+3. Si `APROBADO` y `acreditado=false`:
+   a. **Reclamar** (transaccion de Firestore): si nadie tiene un reclamo vigente, escribe `acreditando_desde`. Solo una peticion lo logra.
+   b. Ejecuta `sp_AcreditarSaldo` con concepto unico `Recarga Wompi {referencia}`. El SP es idempotente por concepto: si ya
+      existe responde `ya_acreditado = 1` sin sumar.
+   c. Marca `acreditado=true` y borra el reclamo.
+   Si la app se cae entre (b) y (c), el reclamo vence a los 2 min, se reintenta y el SP responde "ya acreditado": nunca se suma dos veces.
 
 Reglas de seguridad: **denegar todo acceso desde clientes** (`allow read, write: if false;`).
 Solo el servidor accede con el Admin SDK (credenciales en user-secrets, nunca en el repo).
