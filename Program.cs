@@ -43,6 +43,32 @@ builder.Configuration.GetSection(CasaApuestas.Services.Wompi.WompiOptions.Seccio
 builder.Services.AddHttpClient<CasaApuestas.Services.Wompi.IWompiClient, CasaApuestas.Services.Wompi.WompiClient>();
 builder.Services.AddSingleton<CasaApuestas.Services.Wompi.IWompiCheckoutBuilder, CasaApuestas.Services.Wompi.WompiCheckoutBuilder>();
 
+// Firebase (Firestore): coleccion "pagos". FirestoreDb es seguro entre hilos y se recomienda UNA instancia
+// por aplicacion, por eso es singleton. ProjectId y la ruta del JSON de la cuenta de servicio vienen de user-secrets.
+builder.Services.AddSingleton(sp =>
+{
+    var cfg = sp.GetRequiredService<IConfiguration>();
+    var projectId = cfg["Firebase:ProjectId"];
+    var credencialesPath = cfg["Firebase:CredentialsPath"];
+    if (string.IsNullOrWhiteSpace(projectId) || string.IsNullOrWhiteSpace(credencialesPath))
+        throw new InvalidOperationException("Faltan Firebase:ProjectId o Firebase:CredentialsPath (configuralos con user-secrets).");
+    if (!File.Exists(credencialesPath))
+        throw new InvalidOperationException("El archivo de credenciales de Firebase no existe en la ruta configurada.");
+
+    // CredentialsPath esta marcado como obsoleto (riesgo de seguridad: aceptaria cualquier tipo de credencial de un archivo).
+    // Se carga explicitamente como CUENTA DE SERVICIO, que es lo unico que esperamos, y se entrega como GoogleCredential.
+    var credencial = Google.Apis.Auth.OAuth2.CredentialFactory
+        .FromFile<Google.Apis.Auth.OAuth2.ServiceAccountCredential>(credencialesPath)
+        .ToGoogleCredential();
+
+    return new Google.Cloud.Firestore.FirestoreDbBuilder
+    {
+        ProjectId = projectId,
+        GoogleCredential = credencial
+    }.Build();
+});
+builder.Services.AddSingleton<CasaApuestas.Data.Firebase.IPagoRepository, CasaApuestas.Data.Firebase.PagoRepository>();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
