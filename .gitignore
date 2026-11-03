@@ -30,7 +30,6 @@ firebase*.json
 *serviceAccount*.json
 
 ## Docker: volumenes de datos locales
-data/
 pgdata/
 mysqldata/
 mongodata/
