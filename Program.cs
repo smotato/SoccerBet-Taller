@@ -33,6 +33,8 @@ builder.Services.AddAntiforgery(options => options.HeaderName = "RequestVerifica
 
 // Servicios de negocio (Services/): un caso de uso por clase, inyectados por interfaz.
 builder.Services.AddScoped<CasaApuestas.Services.ISaldoService, CasaApuestas.Services.SaldoService>();
+builder.Services.AddScoped<CasaApuestas.Services.IRecargaService, CasaApuestas.Services.RecargaService>();
+builder.Services.AddScoped<CasaApuestas.Data.SqlServer.IAcreditacionRepository, CasaApuestas.Data.SqlServer.AcreditacionRepository>();
 
 // Wompi (sandbox). Las llaves vienen de user-secrets; si falta alguna o no es de pruebas, la app NO arranca
 // (mensaje sin valores). El HttpClient tipado enviara la llave privada solo en el encabezado Authorization.
