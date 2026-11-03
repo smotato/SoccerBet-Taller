@@ -19,6 +19,10 @@ namespace CasaApuestas.Controllers
         // Colombia no tiene horario de verano: UTC-5 fijo. Evita depender de los nombres de zona del sistema operativo.
         private static readonly TimeSpan OffsetColombia = TimeSpan.FromHours(-5);
 
+        // Un id de transaccion de Wompi solo tiene letras, numeros y guiones (ej. 11004-1730400000-12345).
+        private static readonly System.Text.RegularExpressions.Regex IdTransaccionSeguro =
+            new(@"^[A-Za-z0-9\-]{1,100}$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
         private readonly IRecargaService _recarga;
         private readonly ILogger<RecargaController> _logger;
 
@@ -72,12 +76,10 @@ namespace CasaApuestas.Controllers
         {
             if (!TryObtenerIdCliente(out var idCliente)) return Forbid();
 
-            // Wompi devolvera al usuario a esta URL (absoluta) con ?id=<transaccion>.
-            var redirectUrl = Url.Action(nameof(Retorno), "Recarga", values: null, protocol: Request.Scheme)!;
-
             try
             {
-                var inicio = await _recarga.IniciarAsync(idCliente, monto, redirectUrl, ct);
+                // La URL de retorno (publica, via Dev Tunnel) la decide el servicio desde la configuracion.
+                var inicio = await _recarga.IniciarAsync(idCliente, monto, ct);
                 if (inicio.Checkout is null)
                 {
                     TempData["Error"] = inicio.Error;
@@ -94,7 +96,28 @@ namespace CasaApuestas.Controllers
             }
         }
 
-        // GET /Recarga/Retorno?id=... : el usuario vuelve de Wompi. El "id" de la URL NO prueba nada: solo dice que
+        // GET /Recarga/Puente?id=... : Wompi devuelve al usuario aqui, a la direccion PUBLICA (Dev Tunnel). Este navegador
+        // llega al dominio del tunel, donde NO hay cookie de sesion (la cookie es de localhost), por eso es [AllowAnonymous]
+        // y solo rebota a la direccion local, donde si hay sesion y [Authorize] aplica a Retorno.
+        // Seguridad (evita un redireccionamiento abierto): el destino sale SOLO de la configuracion (Wompi:LocalBaseUrl);
+        // de la URL se copia unicamente el id, y solo si contiene letras, numeros y guiones. No se lee Host ni ningun otro parametro.
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult Puente(string? id)
+        {
+            if (id is null || !IdTransaccionSeguro.IsMatch(id))
+                return BadRequest("Identificador de transacción no válido.");
+
+            var destino = _recarga.UrlRetornoLocal(id);
+            if (destino is null)
+            {
+                _logger.LogWarning("Puente: falta o no es valida la configuracion Wompi:LocalBaseUrl.");
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, "Retorno no configurado (Wompi:LocalBaseUrl).");
+            }
+            return Redirect(destino);
+        }
+
+        // GET /Recarga/Retorno?id=... : el usuario vuelve de Wompi (via el puente). El "id" de la URL NO prueba nada: solo dice que
         // transaccion consultar. El estado real se pregunta a Wompi. Es seguro abrirla muchas veces (idempotente).
         [HttpGet]
         public async Task<IActionResult> Retorno(string? id, CancellationToken ct)

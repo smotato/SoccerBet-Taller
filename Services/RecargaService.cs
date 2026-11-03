@@ -24,7 +24,9 @@ namespace CasaApuestas.Services
     public interface IRecargaService
     {
         (decimal Minimo, decimal Maximo) Limites { get; }
-        Task<InicioRecarga> IniciarAsync(int idCliente, long montoPesos, string redirectUrl, CancellationToken ct = default);
+        Task<InicioRecarga> IniciarAsync(int idCliente, long montoPesos, CancellationToken ct = default);
+        /// <summary>Destino local del puente (desde la configuracion), o null si LocalBaseUrl no esta configurada.</summary>
+        string? UrlRetornoLocal(string idTransaccion);
         Task<ConfirmacionRecarga> ConfirmarAsync(int idCliente, string idTransaccion, CancellationToken ct = default);
         Task<IReadOnlyList<PagoRecarga>> ListarPendientesAsync(int idCliente, CancellationToken ct = default);
     }
@@ -61,8 +63,18 @@ namespace CasaApuestas.Services
 
         public (decimal Minimo, decimal Maximo) Limites => (_opciones.MontoMinimo, _opciones.MontoMaximo);
 
-        public async Task<InicioRecarga> IniciarAsync(int idCliente, long montoPesos, string redirectUrl, CancellationToken ct = default)
+        public string? UrlRetornoLocal(string idTransaccion) => _opciones.UrlRetornoLocal(idTransaccion);
+
+        public async Task<InicioRecarga> IniciarAsync(int idCliente, long montoPesos, CancellationToken ct = default)
         {
+            // Sin direccion publica no se puede volver del checkout (Wompi bloquea localhost): se avisa ANTES de crear
+            // nada en Firestore, para no dejar pagos pendientes que nadie podra completar.
+            var redirectUrl = _opciones.UrlRedireccionWompi();
+            if (redirectUrl is null)
+                return new InicioRecarga(null,
+                    "La recarga no está disponible: falta configurar la dirección pública de retorno (Wompi:PublicBaseUrl, una URL https). " +
+                    "En desarrollo inicia un Dev Tunnel y guárdala en user-secrets.");
+
             // Validacion en el servidor (el formulario tambien valida, pero el navegador no es de fiar).
             if (montoPesos < _opciones.MontoMinimo || montoPesos > _opciones.MontoMaximo)
                 return new InicioRecarga(null,
