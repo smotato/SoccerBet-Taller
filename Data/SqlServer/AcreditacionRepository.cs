@@ -18,7 +18,7 @@ namespace CasaApuestas.Data.SqlServer
     /// La app NO escribe directo en Saldo ni Movimiento_Saldo (el login soccerbet_app solo tiene EXECUTE): el dinero
     /// cambia unicamente a traves del procedimiento almacenado, que corre dentro de una transaccion en SQL Server.
     /// Se usa ADO.NET sobre la conexion del DbContext porque el SP devuelve un resultado (ya_acreditado) y EF no mapea
-    /// bien un escalar de un procedimiento.
+    /// bien un parametro OUTPUT de un procedimiento.
     /// </summary>
     public class AcreditacionRepository : IAcreditacionRepository
     {
@@ -42,10 +42,17 @@ namespace CasaApuestas.Data.SqlServer
                 cmd.Parameters.Add(new SqlParameter("@id_cliente", SqlDbType.Int) { Value = idCliente });
                 cmd.Parameters.Add(new SqlParameter("@importe", SqlDbType.Decimal) { Precision = 18, Scale = 2, Value = importe });
                 cmd.Parameters.Add(new SqlParameter("@concepto", SqlDbType.NVarChar, 250) { Value = concepto });
+                // El SP informa "ya acreditado" por un parametro OUTPUT (1 = ese concepto ya existia y no se sumo nada).
+                var yaAcreditado = new SqlParameter("@ya_acreditado", SqlDbType.Bit) { Direction = ParameterDirection.Output };
+                cmd.Parameters.Add(yaAcreditado);
 
-                var resultado = await cmd.ExecuteScalarAsync(ct);
-                // Si el SP aun no tiene la version idempotente (no devuelve fila), se asume "acredito ahora".
-                return resultado is bool yaAcreditado && yaAcreditado;
+                await cmd.ExecuteNonQueryAsync(ct);
+
+                // Si el parametro volviera nulo (SP desactualizado) se falla en vez de asumir "acredito ahora": mejor no
+                // marcar nada que arriesgar un doble credito silencioso.
+                if (yaAcreditado.Value is not bool valor)
+                    throw new InvalidOperationException("sp_AcreditarSaldo no devolvio @ya_acreditado: la base de datos tiene una version desactualizada del procedimiento.");
+                return valor;
             }
             finally
             {
