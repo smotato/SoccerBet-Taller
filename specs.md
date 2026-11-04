@@ -35,7 +35,7 @@ ser **sencillas o combinadas**. Ver "Reglas de apuestas" mas abajo.
 
 ### Home y catalogo (MySQL + PostgreSQL)
 - [x] RF4 Home segun `docs/mockups/home.html`: partidos en vivo y proximos de la Liga BetPlay con cuotas 1-X-2, leidos de las BD. Publico.
-- [ ] RF5 Menu lateral ocultable (3 rayitas) y filtros por pestanas.
+- [x] RF5 Menu lateral ocultable (3 rayitas) y filtros por pestanas.
 - [ ] RF6 Tabla de posiciones, equipos y jugadores por equipo (con escudo y foto).
 - [x] RF7 Detalle de partido: marcador y minuto, eventos (goles, tarjetas) y alineaciones desde MongoDB, y **todos los mercados del partido con sus cuotas, que se pueden agregar al cupon** (1X2, Total de goles 2.5 y Ambos equipos anotan; no hay mas mercados). Se llega haciendo clic en un partido del home o de la lista. Publico para ver; apostar requiere sesion.
 - [x] RF8 Pagina "Reglas / como apostar" con las reglas guardadas en MongoDB.

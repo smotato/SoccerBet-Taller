@@ -10,10 +10,12 @@
     // Renderiza una fila de partido. Cuotas con punto decimal (cultura invariante).
     // Las cuotas se pueden pulsar (van al cupon) si estan disponibles: antes del partido y en vivo con el mercado abierto.
     // Los data-* solo sirven para pintar el cupon: el SERVIDOR relee la cuota, el partido y el mercado al confirmar.
-    void Fila(PartidoFilaViewModel m)
+    void Fila(PartidoFilaViewModel m, string liga)
     {
+        // Atributos que usa wwwroot/js/filtros-home.js (RF5). El dia sale del texto de la hora ("Hoy 21:00", "Mañana 20:00"...).
+        var dia = m.Hora.StartsWith("Hoy") ? "hoy" : m.Hora.StartsWith("Mañana") ? "manana" : "otro";
         @* data-vivo-*: vivo.js consulta /Partidos/Estado cada ~5 s y actualiza minuto, marcador y cuotas de esta fila. *@
-        <div class="match" data-vivo-id="@m.IdPartido" data-vivo-estado="@(m.EnVivo ? "EN_VIVO" : "PROGRAMADO")">
+        <div class="match" data-envivo="@(m.EnVivo ? "1" : "0")" data-dia="@dia" data-liga="@liga" data-tipos="futbol" data-vivo-id="@m.IdPartido" data-vivo-estado="@(m.EnVivo ? "EN_VIVO" : "PROGRAMADO")">
             <div class="time">
                 @if (m.EnVivo) { <b>En vivo</b> <span class="vivo-min">@(m.Minuto is int mn ? mn + "'" : "")</span> }
                 else { @m.Hora }
@@ -58,12 +60,12 @@
     }
 }
 
-<div class="chips">
-    <button type="button" class="chip on">Todo</button>
-    <button type="button" class="chip">Fútbol</button>
-    <button type="button" class="chip">Jugadores</button>
-    <button type="button" class="chip">Datos</button>
-    <button type="button" class="chip">En vivo</button>
+<div class="chips" id="chipsHome">
+    <button type="button" class="chip on" data-chip="todo" aria-pressed="true">Todo</button>
+    <button type="button" class="chip" data-chip="futbol" aria-pressed="false">Fútbol</button>
+    <button type="button" class="chip" data-chip="jugadores" aria-pressed="false">Jugadores</button>
+    <button type="button" class="chip" data-chip="datos" aria-pressed="false">Datos</button>
+    <button type="button" class="chip" data-chip="envivo" aria-pressed="false">En vivo</button>
 </div>
 
 <div class="promos">
@@ -71,10 +73,10 @@
     <div class="promo b"><h2>Gana con dos goles de ventaja en tu apuesta</h2><span>Ver cómo</span></div>
 </div>
 
-<div class="tabs" role="tablist">
-    <button type="button" class="tab on">En vivo y próximo</button>
-    <button type="button" class="tab">Competición</button>
-    <button type="button" class="tab">Todo fútbol</button>
+<div class="tabs" role="tablist" id="tabsHome">
+    <button type="button" role="tab" class="tab on" data-tab="proximo" aria-selected="true">En vivo y próximo</button>
+    <button type="button" role="tab" class="tab" data-tab="competicion" aria-selected="false">Competición</button>
+    <button type="button" role="tab" class="tab" data-tab="todo" aria-selected="false">Todo fútbol</button>
 </div>
 
 @if (Model.Error is not null)
@@ -99,7 +101,7 @@ else
             @foreach (var grupo in Model.EnVivo)
             {
                 <div class="comp">@grupo.Titulo</div>
-                @foreach (var p in grupo.Partidos) { Fila(p); }
+                @foreach (var p in grupo.Partidos) { Fila(p, grupo.Titulo); }
             }
         </section>
     }
@@ -111,23 +113,15 @@ else
             @foreach (var grupo in Model.Proximos)
             {
                 <div class="comp">@grupo.Titulo</div>
-                @foreach (var p in grupo.Partidos) { Fila(p); }
+                @foreach (var p in grupo.Partidos) { Fila(p, grupo.Titulo); }
             }
         </section>
     }
+
+    @* RF5: lo muestra filtros-home.js cuando el filtro activo deja la lista vacia. *@
+    <div class="cat-empty" id="sinResultadosFiltro" hidden><i class="bi bi-funnel" aria-hidden="true"></i><p>No hay partidos para este filtro.</p></div>
 }
 
 @section Scripts {
-    <script>
-        // Interacción visual de pestañas y chips. Las cuotas las maneja wwwroot/js/cupon.js.
-        document.addEventListener('click', function (e) {
-            const tab = e.target.closest('.tab');
-            const chip = e.target.closest('.chip');
-            if (tab) {
-                document.querySelectorAll('.tab').forEach(function (t) { t.classList.toggle('on', t === tab); });
-            } else if (chip) {
-                document.querySelectorAll('.chip').forEach(function (c) { c.classList.toggle('on', c === chip); });
-            }
-        });
-    </script>
+    <script src="~/js/filtros-home.js" asp-append-version="true"></script>
 }

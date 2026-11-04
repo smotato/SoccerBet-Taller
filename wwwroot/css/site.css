@@ -122,3 +122,6 @@ a.btn{display:inline-block;line-height:1.5}
 .rc-result.ok .rc-big{color:#2E7D4F}.rc-result.warn .rc-big{color:var(--pink-d)}.rc-result.bad .rc-big{color:var(--red)}
 .rc-actions{display:flex;justify-content:center;align-items:center;gap:16px;margin-top:18px}
 @media(max-width:640px){.rc-row{flex-direction:column;align-items:flex-start}.rc-nover{text-align:left}}
+
+/* RF5: los filtros del home usan el atributo hidden; display:flex/grid de estas clases lo anularia */
+.match[hidden],.sec[hidden],.comp[hidden],.cat-empty[hidden]{display:none !important}

@@ -95,7 +95,11 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
   STARTTLS, contrasena de APLICACION en user-secrets `Smtp:Usuario`/`Smtp:Clave`; fuera de Development el envio va en segundo plano para que la respuesta tarde igual) y
   `EntregaEnPantallaDevelopment` (solo se registra en Development). Limites: 5 por IP cada 15 min (rate limiter) y 3 por hora por correo. La pagina de restablecer envia
   `Referrer-Policy: no-referrer`; el token nunca se escribe en logs. El destinatario es siempre el correo registrado del usuario.
-- Pendiente: retiros reales y nube segun specs.md.
+- Filtros del home (RF5) hechos en el navegador (`wwwroot/js/filtros-home.js`, sin BD): cada fila lleva `data-envivo`, `data-dia`, `data-liga`, `data-tipos`.
+  Pestanas: "En vivo y proximo" = en vivo + hoy/manana; "Competicion" = filas con liga; "Todo futbol" = todo. Chips: Todo/Futbol = todo, "En vivo" = EN_VIVO,
+  Jugadores/Datos = por tipo de mercado (hoy no hay: mensaje "No hay partidos para este filtro"). Pestana Y chip se combinan; el filtro se guarda en
+  sessionStorage y sobrevive a las actualizaciones y recargas de `vivo.js`.
+- Pendiente: RF6 (escudos y fotos), retiros reales y nube segun specs.md.
 - Entidades `Cliente` y `Saldo`: SOLO LECTURA desde C# (siempre `AsNoTracking()`, nunca `SaveChanges` sobre ellas).
   Solo `Login` se actualiza desde C# (intentos fallidos, bloqueo, ultimo_login).
 - Mockups de referencia (HTML): `docs/mockups/login.html`, `docs/mockups/home.html`, `docs/mockups/equipos.html` y
