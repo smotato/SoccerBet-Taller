@@ -50,3 +50,6 @@
 .pos-table .pos-team .cat-sh{width:28px;height:28px;font-size:11px}
 .pos-table .pos-pts{font:700 20px "Barlow Condensed",sans-serif}
 @media(max-width:640px){.pos-table .pos-opt{display:none}.pos-table .pos-team{min-width:140px}}
+
+/* RF6: un escudo real (img) no se recorta en circulo ni lleva fondo: los escudos tienen forma propia */
+img.cat-sh{border-radius:0;background:transparent;border:0;padding:1px;box-sizing:border-box}
