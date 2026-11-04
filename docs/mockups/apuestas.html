@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SoccerBet · Apostar y Mis apuestas</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F6F8;--ink:#1E1423;--muted:#625A68;--line:#DDE3E8;--blue:#9ABED6;--blue-d:#2F6A8F;--red:#C4372B;--green:#1E7B3A;--green-t:#E3F3E8;--red-t:#FBE7E4;--amber:#8A5A00;--amber-t:#FFF3D6;color-scheme:light;box-sizing:border-box}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Barlow,system-ui,sans-serif}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.disp{font-family:"Barlow Condensed",sans-serif;font-weight:700}
+header.top{background:var(--blue);position:sticky;top:0;z-index:10}
+.bar{max-width:1320px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:28px}
+.brand{font-size:30px;display:flex;align-items:center;gap:8px}
+.ball{width:15px;height:15px;border-radius:50%;background:var(--ink)}
+nav{display:flex;gap:4px;flex:1}
+nav a{padding:8px 12px;font-weight:600;border-bottom:3px solid transparent;cursor:pointer}
+nav a.on{border-color:var(--ink)}
+.wallet{display:flex;align-items:center;gap:12px}
+.bal{text-align:right;line-height:1.15;font-size:12px}.bal b{display:block;font-size:17px}
+.btn{background:var(--ink);color:#fff;border:0;border-radius:6px;padding:8px 14px;font-weight:600}
+.btn.full{width:100%;padding:12px;font-size:16px}
+.btn[disabled]{background:#B9B2BE;cursor:not-allowed}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.avatar{width:36px;height:36px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:700}
+.wrap{max-width:1180px;margin:0 auto;padding:20px;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
+.wrap.single{grid-template-columns:minmax(0,1fr)}
+.ctl{grid-column:1/-1;background:#fff;border:1px dashed #9AA6B0;border-radius:10px;padding:10px 14px;font-size:13px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.ctl b{color:var(--blue-d)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:99px;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;background:#fff;padding:5px 12px}
+.seg button.on{background:var(--ink);color:#fff}
+h1{margin:0 0 4px;font:700 34px/1.05 "Barlow Condensed",sans-serif}
+.lead{color:var(--muted);margin:0 0 14px}
+/* partidos */
+.sec{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.sec>h2{margin:0;background:var(--ink);color:#fff;padding:12px 16px;font-size:15px;display:flex;align-items:center;gap:10px}
+.tag{background:var(--red);font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px}
+.tag.p{background:var(--blue);color:var(--ink)}
+.match{display:grid;grid-template-columns:78px 1fr auto;gap:14px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.match:last-child{border-bottom:0}
+.time{font-size:13px;color:var(--muted);line-height:1.3}.time b{display:block;color:var(--red)}
+.teams{display:grid;gap:6px;font-weight:600}
+.sh{width:24px;height:24px;border-radius:50%;background:#E9EEF2;border:1px solid var(--line);display:inline-grid;place-items:center;font:700 9px "Barlow Condensed",sans-serif;color:var(--muted);margin-right:8px;vertical-align:middle}
+.odds{display:grid;grid-template-columns:repeat(3,92px);gap:8px}
+.odd{border:1px solid #C5CED5;background:#fff;border-radius:6px;padding:6px 4px;text-align:center;line-height:1.2}
+.odd small{display:block;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.odd b{font:700 20px "Barlow Condensed",sans-serif}
+.odd:hover:not([disabled]){border-color:var(--blue-d)}
+.odd.sel{background:var(--blue);border-color:var(--blue-d)}.odd.sel small{color:var(--ink)}
+.odd[disabled]{background:#F1F3F5;color:#98A0A6;cursor:not-allowed}
+/* cupon */
+.slip{background:#fff;border:1px solid var(--line);border-radius:10px;position:sticky;top:72px;overflow:hidden}
+.slip>h2{margin:0;background:var(--ink);color:#fff;padding:12px 16px;font-size:15px;display:flex;justify-content:space-between}
+.slip .in{padding:14px 16px;display:grid;gap:12px}
+.empty{color:var(--muted);text-align:center;padding:26px 16px}
+.pick{border-left:4px solid var(--blue-d);background:#F4F8FB;border-radius:0 8px 8px 0;padding:8px 12px}
+.pick small{color:var(--muted);display:block}
+.pick b{display:flex;justify-content:space-between;gap:10px}
+.pick .x{border:0;background:none;color:var(--muted);float:right;font-size:18px;line-height:1}
+label.lb{font-size:13px;font-weight:600;display:block;margin-bottom:4px}
+.money{display:flex;align-items:center;border:1px solid #AEB8C0;border-radius:6px;background:#fff;padding:0 10px}
+.money span{color:var(--muted);font-weight:600}
+.money input{border:0;outline:0;flex:1;min-width:0;padding:10px 6px;font:700 20px "Barlow Condensed",sans-serif}
+.money:focus-within{outline:3px solid var(--ink);outline-offset:1px}
+.money.bad{border-color:var(--red)}
+.quick{display:flex;gap:6px;flex-wrap:wrap}
+.quick button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:3px 12px;font-size:13px;font-weight:600}
+.sum{display:grid;gap:4px;font-size:14px}
+.sum div{display:flex;justify-content:space-between}
+.sum .big{font:700 22px "Barlow Condensed",sans-serif;border-top:1px solid var(--line);padding-top:6px;color:var(--green)}
+.msg{border-radius:8px;padding:8px 12px;font-size:13px;font-weight:500}
+.msg.err{background:var(--red-t);color:#8C2219}
+.msg.warn{background:var(--amber-t);color:var(--amber)}
+.msg.ok{background:var(--green-t);color:#14602B}
+.fine{font-size:12px;color:var(--muted)}
+/* mis apuestas */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.stat small{color:var(--muted);display:block}.stat b{font:700 24px "Barlow Condensed",sans-serif}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tabs button{background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 16px;font-weight:600}
+.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.bet{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.bet .h{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;background:#F4F8FB;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+.bet .b{padding:12px 16px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.bet .m{font-weight:600}.bet .m small{display:block;color:var(--muted);font-weight:400}
+.bet .n{text-align:right;line-height:1.3;font-size:14px}.bet .n b{font:700 22px "Barlow Condensed",sans-serif}
+.st{font-size:11px;font-weight:700;border-radius:4px;padding:2px 8px}
+.st.PENDIENTE{background:var(--amber-t);color:var(--amber)}.st.GANADA{background:var(--green-t);color:#14602B}
+.st.PERDIDA{background:var(--red-t);color:#8C2219}.st.ANULADA{background:#E8EAEC;color:#4A5157}
+.mov{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.mv{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line)}
+.mv:last-child{border-bottom:0}.mv small{display:block;color:var(--muted)}
+.cr{color:var(--green);font-weight:700}.db{color:var(--red);font-weight:700}
+.odd.up b::after{content:" \25B2";font-size:11px;color:var(--green)}.odd.dn b::after{content:" \25BC";font-size:11px;color:var(--red)}
+.live-min{display:inline-block;background:var(--red);color:#fff;border-radius:4px;font-size:11px;font-weight:700;padding:1px 6px;margin-left:6px}
+.link{color:var(--blue-d);font-weight:600;font-size:13px;cursor:pointer;background:none;border:0;padding:0;text-decoration:underline}
+.mk{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.mk>h3{margin:0;padding:10px 16px;background:#F4F8FB;border-bottom:1px solid var(--line);font-size:14px;display:flex;justify-content:space-between}
+.mk .odds{padding:12px 16px}.mk .odds.two{grid-template-columns:repeat(2,140px)}
+.hero{background:var(--ink);color:#fff;border-radius:10px;padding:18px 20px;margin-bottom:12px}
+.hero .sc{font:700 40px "Barlow Condensed",sans-serif}.hero .row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.hero small{color:#cfc6d4}
+.ev{list-style:none;margin:0;padding:0}.ev li{padding:8px 16px;border-bottom:1px solid var(--line);display:flex;gap:10px}.ev li:last-child{border-bottom:0}.ev b{min-width:36px;color:var(--blue-d)}
+.legs{border-top:1px solid var(--line);padding:6px 16px 10px;display:grid;gap:6px;font-size:14px}
+.legs div{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center}.legs small{color:var(--muted)}
+.pk{margin-bottom:8px}
+.st.CASHOUT{background:#DDEBF5;color:#1F4E70}
+.co{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line);padding:10px 16px;background:#FAFCFD;flex-wrap:wrap}
+.co .fine{flex:1;min-width:160px}
+.demo{border:2px dashed #B5302B;background:#FFF5F4;border-radius:10px;padding:12px 16px;margin-bottom:12px}
+.demo b{color:#8C2219}.demo .r{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.btn.danger{background:#B5302B}
+.form{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px;max-width:520px;display:grid;gap:14px}
+select{width:100%;border:1px solid #AEB8C0;border-radius:6px;padding:10px;background:#fff}
+.tag.x{background:#4A5157}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}.slip{position:static}nav{display:none}.stats{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.match{grid-template-columns:1fr}.odds{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<header class="top"><div class="bar">
+ <a class="brand disp" href="#"><span class="ball"></span>SoccerBet</a>
+ <nav aria-label="Principal"><a id="nvHome" class="on">Deporte</a><a>En vivo</a><a id="nvBets">Mis apuestas</a><a>Promociones</a><a>Ayuda</a></nav>
+ <div class="wallet"><div class="bal">Saldo<b id="saldo">$ 120.000</b></div><button class="btn">Recargar</button><button class="btn ghost" id="btnRet">Retirar</button><span class="avatar">CM</span></div>
+</div></header>
+
+<div class="wrap" id="wrap">
+ <div class="ctl" id="ctl">
+  <span><b>Mockup:</b> prueba cómo reacciona el cupón. Estado:</span>
+  <span class="seg" id="estados" role="group" aria-label="Estado del cupón">
+   <button class="on" data-e="normal">Normal</button><button data-e="saldo">Saldo insuficiente</button><button data-e="cuota">Cuota cambió</button><button data-e="cerrado">Mercado cerrado (min 85)</button>
+  </span>
+ </div>
+
+ <!-- VISTA 1: partidos -->
+ <section id="vHome">
+  <h1>Partidos</h1><p class="lead">Elige una o varias cuotas: una selección es apuesta sencilla; dos o más, combinada (máx. una por mercado en cada partido). Se puede apostar antes y durante el partido.</p>
+  <div class="sec"><h2><span class="tag">EN VIVO</span>En vivo ahora</h2><div id="live"></div></div>
+  <div class="sec"><h2><span class="tag p">PRÓXIMO</span>Comenzando pronto</h2><div id="soon"></div></div>
+ </section>
+
+ <!-- VISTA 2: detalle de partido -->
+ <section id="vMatch" hidden></section>
+
+ <aside class="slip" id="slip" aria-label="Cupón de apuesta"></aside>
+
+ <!-- VISTA 4: retirar -->
+ <section id="vRet" hidden>
+  <h1>Retirar saldo</h1><p class="lead">Retiro simulado: se aprueba al instante y no mueve dinero real.</p>
+  <div class="form" id="retForm"></div>
+  <h2 style="margin:20px 0 8px;font:700 22px 'Barlow Condensed',sans-serif">Mis retiros</h2>
+  <div class="mov" id="retList"></div>
+ </section>
+
+ <!-- VISTA 3: mis apuestas -->
+ <section id="vBets" hidden>
+  <h1>Mis apuestas</h1><p class="lead">Tu historial de apuestas, con las selecciones de cada combinada, y los movimientos de tu saldo.</p>
+  <div class="stats">
+   <div class="stat"><small>Pendientes</small><b>3</b></div><div class="stat"><small>Apostado (pendiente)</small><b>$ 40.000</b></div>
+   <div class="stat"><small>Ganadas</small><b>1</b></div><div class="stat"><small>Perdidas</small><b>1</b></div>
+  </div>
+  <div class="tabs" id="tabsB"><button class="on" data-t="todas">Todas</button><button data-t="PENDIENTE">Pendientes</button><button data-t="resueltas">Resueltas</button><button data-t="mov">Movimientos de saldo</button></div>
+  <div id="listB"></div>
+ </section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>"$ "+Math.round(n).toLocaleString("es-CO");
+const MK=[{n:"Resultado final 1X2",s:["L","Empate","V"]},{n:"Total de goles 2.5",s:["Más de 2.5","Menos de 2.5"]},{n:"Ambos equipos anotan",s:["Sí","No"]}];
+const M=[
+ {id:11,live:1,min:34,gl:1,gv:0,a:"Llaneros FC",b:"Junior de Barranquilla",ia:"LF",ib:"JB",t:"En vivo",o:[[5.70,3.41,1.62],[2.60,1.45],[2.10,1.65]],dir:[[1,-1,0],[1,-1],[0,0]]},
+ {id:12,t:"Hoy 21:00",a:"Atlético Nacional",b:"Millonarios FC",ia:"AN",ib:"MF",o:[[1.77,3.41,4.36],[1.85,1.95],[1.80,1.95]]},
+ {id:13,t:"Hoy 21:30",a:"Deportivo Cali",b:"Independiente Santa Fe",ia:"DC",ib:"IS",o:[[2.05,3.30,3.40],[1.90,1.90],[1.85,1.90]]},
+ {id:14,t:"Hoy 23:00",a:"América de Cali",b:"Independiente Medellín",ia:"AC",ib:"IM",o:[[2.10,3.25,3.25],[1.95,1.85],[1.80,1.95]]}];
+const gm=id=>M.find(m=>m.id===id);
+const sname=(m,mk,k)=>mk===0?(k==0?m.a:k==1?"Empate":m.b):MK[mk].s[k];
+let picks=[],estado="normal",saldo=120000,stake="",done=null,notice="",curMatch=null;
+const MAXSEL=10;
+const closed=m=>m.anulado||(m.live&&estado==="cerrado");
+const odd=p=>{const m=gm(p.id);let q=m.o[p.mk][p.k];return (estado==="cuota"&&picks[0]===p)?q+0.15:q};
+function btn(m,mk,k){const sel=picks.some(p=>p.id===m.id&&p.mk===mk&&p.k===k);const d=m.dir?m.dir[mk][k]:0;const off=closed(m);
+ return `<button class="odd ${sel?"sel":""} ${d>0?"up":d<0?"dn":""}" ${off?"disabled":""} data-id="${m.id}" data-mk="${mk}" data-k="${k}" aria-pressed="${sel}"><small>${off?(m.anulado?"Anulado":"Cerrado"):(mk===0?(k==0?m.a:k==1?"Empate":m.b):MK[mk].s[k])}</small><b>${off?"–":m.o[mk][k].toFixed(2)}</b></button>`}
+function row(m){return `<div class="match"><div class="time">${m.live?`<b>En vivo</b>${closed(m)?"85'":m.min+"'"}`:m.t}</div>
+ <div class="teams"><div><span class="sh">${m.ia}</span><button class="link" style="color:inherit;text-decoration:none;font-size:inherit;font-weight:600" data-open="${m.id}">${m.a}</button>${m.live?`<b style="float:right;margin-right:10px">${m.gl}</b>`:""}</div><div><span class="sh">${m.ib}</span><button class="link" style="color:inherit;text-decoration:none;font-size:inherit;font-weight:600" data-open="${m.id}">${m.b}</button>${m.live?`<b style="float:right;margin-right:10px">${m.gv}</b>`:""}</div></div>
+ <div><div class="odds">${[0,1,2].map(k=>btn(m,0,k)).join("")}</div><div style="text-align:right;margin-top:4px"><button class="link" data-open="${m.id}">+2 mercados</button></div></div></div>`}
+function lists(){$("live").innerHTML=M.filter(m=>m.live).map(row).join("");$("soon").innerHTML=M.filter(m=>!m.live).map(row).join("")}
+function detail(id){const m=gm(id);curMatch=id;
+ $("vMatch").innerHTML=`<button class="btn ghost" id="backM" style="margin-bottom:12px">← Partidos</button>
+ <div class="hero"><div class="row"><div><small>Colombia / Liga BetPlay Dimayor · Jornada 2</small><div style="font:700 26px 'Barlow Condensed',sans-serif">${m.a} vs ${m.b}</div></div>
+ <div style="text-align:right">${m.live?`<span class="tag">EN VIVO</span><span class="live-min">${closed(m)?"85'":m.min+"'"}</span><div class="sc">${m.gl} - ${m.gv}</div>`:`<span class="tag p">PRÓXIMO</span><div style="font:700 22px 'Barlow Condensed',sans-serif;margin-top:4px">${m.t}</div>`}</div></div></div>
+ ${m.anulado?`<div class="msg err" style="margin-bottom:12px"><b>Partido anulado.</b> Las apuestas sencillas se devolvieron y las selecciones de este partido salieron de las combinadas.</div>`:""}
+ ${closed(m)&&!m.anulado?`<div class="msg warn" style="margin-bottom:12px"><b>Mercados cerrados.</b> Las apuestas se cierran a partir del minuto 85.</div>`:""}
+ <div class="demo"><b>Modo demostración</b> <span class="fine">(solo visible en Development; los partidos simulados nunca se anulan solos)</span>
+  <div class="r"><button class="btn" data-demo="fin" ${m.anulado?"disabled":""}>Terminar partido ahora</button><button class="btn danger" data-demo="anular" ${m.anulado?"disabled":""}>Anular partido</button></div></div>
+ ${MK.map((k,mk)=>`<div class="mk"><h3>${k.n}<span class="fine">${m.live?"Cuotas en vivo":""}</span></h3><div class="odds ${k.s.length===2?"two":""}">${k.s.map((_,i)=>btn(m,mk,i)).join("")}</div></div>`).join("")}
+ ${m.live?`<div class="mk"><h3>Eventos</h3><ul class="ev"><li><b>12'</b>Gol de Llaneros FC</li><li><b>8'</b>Tarjeta amarilla · Junior</li></ul></div>`:`<div class="mk"><h3>Alineaciones</h3><div class="empty">Se publican cuando empieza el partido.</div></div>`}
+ <p class="fine">En el cupón solo cabe una selección por mercado en cada partido: al elegir otra cuota del mismo mercado, reemplaza a la anterior. Puedes combinar mercados distintos del mismo partido (máx. 3).</p>`}
+function slip(){
+ const s=$("slip");
+ if(done){s.innerHTML=`<h2>Apuesta registrada</h2><div class="in"><div class="msg ok"><b>¡Listo!</b> Tu apuesta quedó registrada y el importe se descontó de tu saldo.</div>
+  ${done.legs.map(l=>`<div class="pick pk"><small>${l.p}</small><b><span>${l.s}</span><span>${l.q.toFixed(2)}</span></b></div>`).join("")}
+  <div class="sum"><div><span>${done.legs.length>1?"Combinada de "+done.legs.length:"Sencilla"} · cuota total</span><b>${done.cuota.toFixed(2)}</b></div><div><span>Importe</span><b>${fmt(done.stake)}</b></div><div><span>Ganancia potencial</span><b>${fmt(done.stake*done.cuota)}</b></div><div><span>Saldo actual</span><b>${fmt(saldo)}</b></div></div>
+  <button class="btn full" id="again">Seguir apostando</button><button class="btn ghost full" id="goBets">Ver Mis apuestas</button></div>`;return}
+ if(!picks.length){s.innerHTML=`<h2>Cupón</h2><div class="empty">Elige una cuota para empezar.<br><span class="fine">1 selección = sencilla · 2 o más = combinada (máx. ${MAXSEL}).</span></div>`;return}
+ const n=picks.length,v=parseInt(String(stake).replace(/\D/g,""))||0,min=1000,max=500000,cap=20000000;
+ const tot=picks.reduce((a,p)=>a*odd(p),1);
+ const closedPick=picks.find(p=>closed(gm(p.id)));
+ let err="";
+ if(v&&v<min)err=`El importe mínimo es ${fmt(min)}.`;else if(v>max)err=`El importe máximo es ${fmt(max)}.`;else if(v&&(estado==="saldo"?v>5000:v>saldo))err=`Saldo insuficiente. Tu saldo es ${fmt(estado==="saldo"?5000:saldo)}.`;
+ const prize=Math.min(v*tot,cap);
+ s.innerHTML=`<h2>Cupón <span class="fine" style="color:#cfc6d4">${n>1?"Combinada · "+n+" selecciones":"Sencilla"}</span></h2><div class="in">
+  ${picks.map((p,i)=>{const m=gm(p.id);return `<div class="pick"><button class="x" data-rm="${i}" aria-label="Quitar selección">×</button><small>${m.a} vs ${m.b}${m.live?" · en vivo":" · "+m.t}</small><b><span>${sname(m,p.mk,p.k)}</span><span>${odd(p).toFixed(2)}</span></b><small>${MK[p.mk].n}</small></div>`}).join("")}
+  ${notice?`<div class="msg warn">${notice}</div>`:""}
+  ${estado==="cuota"?`<div class="msg warn"><b>La cuota cambió</b> de ${picks[0]?gm(picks[0].id).o[picks[0].mk][picks[0].k].toFixed(2):""} a ${picks[0]?odd(picks[0]).toFixed(2):""} en la primera selección. Confirma para apostar con la nueva cuota.</div>`:""}
+  ${closedPick?`<div class="msg err"><b>Un mercado se cerró.</b> ${gm(closedPick.id).a} vs ${gm(closedPick.id).b} ya no admite apuestas. Quita esa selección para continuar.</div>`:""}
+  <div><label class="lb" for="imp">Importe</label><div class="money ${err?"bad":""}"><span>$</span><input id="imp" inputmode="numeric" placeholder="0" value="${v?v.toLocaleString("es-CO"):""}" ${closedPick?"disabled":""}></div>
+  <div class="quick" style="margin-top:8px">${[5000,10000,20000,50000].map(q=>`<button data-q="${q}" ${closedPick?"disabled":""}>${fmt(q)}</button>`).join("")}</div>
+  <div class="fine" style="margin-top:6px">Mínimo ${fmt(min)} · máximo ${fmt(max)}</div></div>
+  ${err&&!closedPick?`<div class="msg err">${err}</div>`:""}
+  <div class="sum"><div><span>Cuota total</span><b>${tot.toFixed(2)}</b></div><div><span>Importe</span><b>${v?fmt(v):"–"}</b></div><div class="big"><span>Ganancia potencial</span><span>${v?fmt(prize):"–"}</span></div>
+  ${v&&v*tot>cap?`<div class="msg warn">El premio máximo por apuesta es ${fmt(cap)}.</div>`:`<div class="fine">Incluye tu importe. Se paga solo si aciertas todas las selecciones.${picks.some((p,i)=>picks.some((q,j)=>j>i&&q.id===p.id))?" Las selecciones del mismo partido pueden estar relacionadas entre sí.":""}</div>`}</div>
+  <button class="btn full" id="ok" ${(!v||err||closedPick)?"disabled":""}>${estado==="cuota"?"Aceptar nueva cuota y apostar":"Confirmar apuesta"}</button>
+  <div class="fine">Saldo disponible: <b>${fmt(estado==="saldo"?5000:saldo)}</b>. Dinero de prueba, sin retiros.</div></div>`;
+}
+const B=[
+ {n:1044,f:"Hoy 20:05",e:"PENDIENTE",v:10000,q:7.69,co:12016,tipo:"Combinada de 3",legs:[["Nacional vs Millonarios","Gana Atlético Nacional",1.77,"PENDIENTE"],["Cali vs Santa Fe","Más de 2.5",1.90,"PENDIENTE"],["América vs Medellín","Gana América de Cali",2.10,"PENDIENTE"]]},
+ {n:1042,f:"Hoy 19:40",e:"PENDIENTE",v:20000,q:2.05,co:21639,tipo:"Sencilla",legs:[["Santa Fe vs Cali","Gana Deportivo Cali",2.05,"PENDIENTE"]]},
+ {n:1041,f:"Hoy 18:10",e:"PENDIENTE",v:10000,q:3.41,co:0,bloq:"Mercado cerrado",tipo:"Sencilla (en vivo)",legs:[["Nacional vs Millonarios","Empate",3.41,"PENDIENTE"]]},
+ {n:1030,f:"27 oct 15:55",e:"GANADA",v:10000,q:1.85,tipo:"Sencilla",legs:[["Nacional vs Junior","Gana Atlético Nacional",1.85,"GANADA"]]},
+ {n:1029,f:"27 oct 17:30",e:"PERDIDA",v:15000,q:4.68,tipo:"Combinada de 2",legs:[["Millonarios vs América","Gana Millonarios FC",2.40,"PERDIDA"],["Fortaleza vs Internacional","Ambos anotan: Sí",1.95,"GANADA"]]},
+ {n:1020,f:"20 oct 14:00",e:"ANULADA",v:8000,q:1.95,tipo:"Sencilla",legs:[["Pasto vs Chicó","Más de 2.5",1.95,"ANULADA"]]}];
+const MV=[["Apuesta #1044","Hoy 20:05","DEBITO",-10000],["Apuesta #1042","Hoy 19:40","DEBITO",-20000],["Apuesta #1041","Hoy 18:10","DEBITO",-10000],["Recarga Wompi","Hoy 17:50","CREDITO",100000],["Premio apuesta #1030","27 oct 17:45","CREDITO",18500],["Apuesta #1030","27 oct 15:55","DEBITO",-10000],["Apuesta #1029","27 oct 17:30","DEBITO",-15000],["Devolución apuesta #1020","21 oct 09:10","CREDITO",8000]];
+function coBlock(x){
+ if(x.e!=="PENDIENTE")return "";
+ const off=estado==="cerrado"||x.bloq||x.co<1;
+ const why=estado==="cerrado"?"Mercado cerrado: el cash out vuelve cuando se reabra.":x.bloq?x.bloq+": no disponible ahora.":x.co<1?"El valor es menor a $ 1: cash out bloqueado.":"Valor actual según las cuotas en vivo. Se recalcula al confirmar.";
+ if(x.confirm)return `<div class="co"><span>Recibirás <b>${fmt(x.co)}</b> ahora y la apuesta se cierra.</span><span><button class="btn" data-cof="${x.n}">Confirmar cash out</button> <button class="btn ghost" data-coc="${x.n}">Cancelar</button></span></div>`;
+ return `<div class="co"><span class="fine">${why}</span><button class="btn" data-co="${x.n}" ${off?"disabled":""}>Cash out ${off&&x.co<1?"":fmt(x.co)}</button></div>`}
+let curTab="todas";
+function bets(t){const L=$("listB");
+ if(t==="mov"){L.innerHTML=`<div class="mov">${MV.map(m=>`<div class="mv"><span>${m[0]}<small>${m[1]} · ${m[2]}</small></span><span class="${m[3]>0?"cr":"db"}">${m[3]>0?"+":"−"} ${fmt(Math.abs(m[3]))}</span></div>`).join("")}</div>`;return}
+ curTab=t;const a=B.filter(x=>t==="todas"||(t==="resueltas"?x.e!=="PENDIENTE":x.e===t));
+ L.innerHTML=a.length?a.map(x=>`<div class="bet"><div class="h"><span>Apuesta #${x.n} · ${x.f} · ${x.tipo}</span><span class="st ${x.e}">${x.e}</span></div>
+  <div class="b"><div class="m">${x.legs.length>1?`Cuota total ${x.q.toFixed(2)}`:x.legs[0][1]}<small>${x.legs.length>1?x.legs.length+" selecciones":x.legs[0][0]+" · cuota "+x.q.toFixed(2)}</small></div>
+  <div class="n">Apostado <b>${fmt(x.v)}</b><br>${x.e==="GANADA"?`<span class="cr">Premio ${fmt(x.v*x.q)}</span>`:x.e==="PENDIENTE"?`Posible ${fmt(x.v*x.q)}`:x.e==="ANULADA"?`<span>Devuelto ${fmt(x.v)}</span>`:x.e==="CASHOUT"?`<span class="cr">Cash out ${fmt(x.co)}</span>`:`<span class="db">Sin premio</span>`}</div></div>
+  ${x.legs.length>1?`<div class="legs">${x.legs.map(l=>`<div><span>${l[1]}<small> · ${l[0]}</small></span><span>${l[2].toFixed(2)}</span><span class="st ${l[3]}">${l[3]}</span></div>`).join("")}</div>`:""}${coBlock(x)}</div>`).join(""):`<div class="empty">No tienes apuestas en esta categoría.</div>`}
+function view(v){["vHome","vMatch","vBets","vRet"].forEach(id=>$(id).hidden=true);$({home:"vHome",match:"vMatch",bets:"vBets",ret:"vRet"}[v]).hidden=false;const solo=v==="bets"||v==="ret";$("slip").hidden=solo;$("ctl").hidden=v==="bets";$("wrap").classList.toggle("single",solo);if(v==="ret")ret();$("nvHome").classList.toggle("on",v!=="bets"&&v!=="ret");$("nvBets").classList.toggle("on",v==="bets");if(v==="bets")bets("todas");window.scrollTo(0,0)}
+function refresh(){lists();if(!$("vMatch").hidden)detail(curMatch);slip()}
+document.addEventListener("click",e=>{
+ const o=e.target.closest(".odd[data-id]");if(o&&!o.disabled){done=null;notice="";const id=+o.dataset.id,mk=+o.dataset.mk,k=+o.dataset.k;
+  const same=picks.findIndex(p=>p.id===id&&p.mk===mk&&p.k===k);
+  if(same>=0)picks.splice(same,1);
+  else{const other=picks.findIndex(p=>p.id===id&&p.mk===mk);if(other>=0){picks.splice(other,1);notice="Solo cabe una selección por mercado en cada partido: reemplazamos la anterior."}
+   if(picks.length>=MAXSEL){notice=`Máximo ${MAXSEL} selecciones por combinada.`}else picks.push({id,mk,k})}
+  if(!picks.length)stake="";refresh();return}
+ const op=e.target.closest("[data-open]");if(op){view("match");detail(+op.dataset.open);return}
+ if(e.target.closest("#backM")){view("home");return}
+ const rm=e.target.closest("[data-rm]");if(rm){picks.splice(+rm.dataset.rm,1);notice="";if(!picks.length)stake="";refresh();return}
+ const q=e.target.closest("[data-q]");if(q){stake=q.dataset.q;slip();return}
+ if(e.target.closest("#ok")){const v=parseInt(String(stake).replace(/\D/g,""));const tot=picks.reduce((a,p)=>a*odd(p),1);
+  saldo-=v;$("saldo").textContent=fmt(saldo);done={legs:picks.map(p=>{const m=gm(p.id);return{p:m.a+" vs "+m.b,s:sname(m,p.mk,p.k),q:odd(p)}}),cuota:tot,stake:v};picks=[];notice="";refresh();return}
+ if(e.target.closest("#again")){done=null;stake="";slip();return}
+ if(e.target.closest("#goBets")||e.target.closest("#nvBets")){view("bets");return}
+ if(e.target.closest("#nvHome")){view("home");return}
+ const s=e.target.closest("#estados button");if(s){estado=s.dataset.e;document.querySelectorAll("#estados button").forEach(b=>b.classList.toggle("on",b===s));refresh();return}
+ const t=e.target.closest("#tabsB button");if(t){document.querySelectorAll("#tabsB button").forEach(b=>b.classList.toggle("on",b===t));bets(t.dataset.t)}
+});
+document.addEventListener("input",e=>{if(e.target.id==="imp"){stake=e.target.value.replace(/\D/g,"");slip();const i=$("imp");i.focus();i.setSelectionRange(i.value.length,i.value.length)}});
+let RET=[["Retiro a Nequi","Hoy 16:20","PAGADO",30000]],retMsg="",retVal="";
+function ret(){const v=parseInt(String(retVal).replace(/\D/g,""))||0,min=10000;let err="";
+ if(v&&v<min)err=`El retiro mínimo es ${fmt(min)}.`;else if(v>saldo)err=`Saldo insuficiente. Tu saldo es ${fmt(saldo)}.`;
+ $("retForm").innerHTML=`${retMsg?`<div class="msg ok">${retMsg}</div>`:""}<div class="sum"><div><span>Saldo disponible</span><b>${fmt(saldo)}</b></div></div>
+ <div><label class="lb" for="rimp">Importe a retirar</label><div class="money ${err?"bad":""}"><span>$</span><input id="rimp" inputmode="numeric" placeholder="0" value="${v?v.toLocaleString("es-CO"):""}"></div><div class="fine" style="margin-top:6px">Mínimo ${fmt(min)} · máximo tu saldo</div></div>
+ <div><label class="lb" for="medio">Medio (simulado)</label><select id="medio"><option>Nequi</option><option>PSE</option><option>Cuenta bancaria</option></select></div>
+ ${err?`<div class="msg err">${err}</div>`:""}
+ <button class="btn full" id="doRet" ${(!v||err)?"disabled":""}>Retirar ${v&&!err?fmt(v):""}</button>
+ <div class="fine">Dinero de prueba: el retiro se aprueba al instante y no se envía dinero real.</div>`;
+ $("retList").innerHTML=RET.map(m=>`<div class="mv"><span>${m[0]}<small>${m[1]} · ${m[2]}</small></span><span class="db">− ${fmt(m[3])}</span></div>`).join("")}
+document.addEventListener("click",e=>{
+ if(e.target.closest("#btnRet")){retMsg="";retVal="";view("ret");return}
+ if(e.target.closest("#doRet")){const v=parseInt(String(retVal).replace(/\D/g,""));saldo-=v;$("saldo").textContent=fmt(saldo);RET.unshift(["Retiro a "+$("medio").value,"Ahora","PAGADO",v]);MV.unshift(["Retiro simulado","Ahora","DEBITO",-v]);retMsg=`Retiro de ${fmt(v)} aprobado al instante.`;retVal="";ret();return}
+ const c=e.target.closest("[data-co]");if(c){B.find(x=>x.n==+c.dataset.co).confirm=true;bets(curTab);return}
+ const cc=e.target.closest("[data-coc]");if(cc){B.find(x=>x.n==+cc.dataset.coc).confirm=false;bets(curTab);return}
+ const cf=e.target.closest("[data-cof]");if(cf){const x=B.find(y=>y.n==+cf.dataset.cof);x.e="CASHOUT";x.confirm=false;saldo+=x.co;$("saldo").textContent=fmt(saldo);MV.unshift(["Cash out apuesta #"+x.n,"Ahora","CREDITO",x.co]);bets(curTab);return}
+ const d=e.target.closest("[data-demo]");if(d){const m=gm(curMatch);if(d.dataset.demo==="anular"){m.anulado=true;picks=picks.filter(p=>p.id!==m.id);}else{m.live=0;m.t="Finalizado";}refresh();return}
+});
+document.addEventListener("input",e=>{if(e.target.id==="rimp"){retVal=e.target.value.replace(/\D/g,"");ret();const i=$("rimp");i.focus();i.setSelectionRange(i.value.length,i.value.length)}});
+lists();slip();
+</script>
+</body>
+</html>
