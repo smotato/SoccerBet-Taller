@@ -21,7 +21,7 @@
             <nav class="main-nav" aria-label="Principal">
                 <a class="on" asp-controller="Home" asp-action="Index">Deporte</a>
                 <a href="#">En vivo</a>
-                <a href="#">Mis apuestas</a>
+                <a asp-controller="Apuestas" asp-action="Index">Mis apuestas</a>
                 <a href="#">Promociones</a>
                 <a href="#">Ayuda</a>
             </nav>
@@ -34,7 +34,7 @@
         <aside class="side" aria-label="Menú">
             <div class="search"><input placeholder="Buscar equipo o liga" aria-label="Buscar"><button type="button" aria-label="Buscar"><i class="bi bi-search" aria-hidden="true"></i></button></div>
             <h3>Popular</h3>
-            <a href="#"><i class="bi bi-receipt" aria-hidden="true"></i>Mis apuestas</a>
+            <a asp-controller="Apuestas" asp-action="Index"><i class="bi bi-receipt" aria-hidden="true"></i>Mis apuestas</a>
             <a href="#"><i class="bi bi-gift" aria-hidden="true"></i>Apuestas gratuitas</a>
             <a href="#"><i class="bi bi-star" aria-hidden="true"></i>Destacados</a>
             <a href="#"><i class="bi bi-broadcast" aria-hidden="true"></i>En vivo ahora</a>

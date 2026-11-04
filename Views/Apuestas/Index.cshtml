@@ -1,0 +1,143 @@
+@model CasaApuestas.Models.ViewModels.MisApuestasViewModel
+@using System.Globalization
+@using CasaApuestas.Services.Presentacion
+@using CasaApuestas.Models.ViewModels
+@{
+    ViewData["Title"] = "Mis apuestas";
+    var inv = CultureInfo.InvariantCulture;
+}
+
+@functions {
+    // Texto de la derecha de cada apuesta segun su estado. GANADA/PENDIENTE usan la ganancia guardada por el procedimiento
+    // (ya con el tope de premio maximo aplicado); ANULADA devuelve el importe.
+    static (string Etiqueta, string Valor, string Clase) Resultado(ApuestaViewModel a) => a.Estado switch
+    {
+        "GANADA" => ("Premio", Pesos.Formatear(a.PosibleGanancia), "cr"),
+        "PENDIENTE" => ("Posible", Pesos.Formatear(a.PosibleGanancia), ""),
+        "ANULADA" => ("Devuelto", Pesos.Formatear(a.Importe), ""),
+        "PERDIDA" => ("", "Sin premio", "db"),
+        _ => ("", a.Estado, "")
+    };
+}
+
+<h1 class="cat-title">Mis apuestas</h1>
+<p class="cat-lead">Tu historial de apuestas, con las selecciones de cada combinada, y los movimientos de tu saldo.</p>
+
+@if (Model.Error is not null)
+{
+    <div class="cat-empty" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><p>@Model.Error</p></div>
+}
+else
+{
+    @if (Model.DetalleNoDisponible)
+    {
+        <div class="ap-msg warn" role="status">
+            <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+            No pudimos cargar el detalle de los partidos. Tus importes y estados se muestran igual.
+        </div>
+    }
+
+    <div class="ap-stats">
+        <div class="ap-stat"><small>Pendientes</small><b>@Model.Pendientes</b></div>
+        <div class="ap-stat"><small>Apostado (pendiente)</small><b>@Pesos.Formatear(Model.ApostadoPendiente)</b></div>
+        <div class="ap-stat"><small>Ganadas</small><b>@Model.Ganadas</b></div>
+        <div class="ap-stat"><small>Perdidas</small><b>@Model.Perdidas</b></div>
+    </div>
+
+    <div class="ap-tabs" role="tablist" id="tabsApuestas">
+        <button type="button" role="tab" data-filtro="todas" aria-selected="true">Todas</button>
+        <button type="button" role="tab" data-filtro="PENDIENTE" aria-selected="false">Pendientes</button>
+        <button type="button" role="tab" data-filtro="resueltas" aria-selected="false">Resueltas</button>
+        <button type="button" role="tab" data-filtro="mov" aria-selected="false">Movimientos de saldo</button>
+    </div>
+
+    <div id="panelApuestas">
+        @if (Model.Apuestas.Count == 0)
+        {
+            <div class="cat-empty"><i class="bi bi-receipt" aria-hidden="true"></i><p>Todavía no tienes apuestas. Elige una cuota en <a class="ap-link" asp-controller="Home" asp-action="Index">Partidos</a> para empezar.</p></div>
+        }
+        @foreach (var a in Model.Apuestas)
+        {
+            var r = Resultado(a);
+            <article class="ap-bet" data-estado="@a.Estado">
+                <div class="ap-bet-h">
+                    <span>Apuesta #@a.IdApuesta · @a.Fecha · @a.Tipo</span>
+                    <span class="ap-st @a.Estado">@a.Estado</span>
+                </div>
+                <div class="ap-bet-b">
+                    <div class="ap-bet-m">
+                        @if (a.EsCombinada)
+                        {
+                            @:Cuota total @a.CuotaTotal.ToString("0.00", inv)
+                            <small>@a.Selecciones.Count selecciones</small>
+                        }
+                        else
+                        {
+                            var s = a.Selecciones[0];
+                            @s.Seleccion
+                            <small>@(s.DetalleDisponible ? $"{s.Partido} · {s.Mercado} · " : "")cuota @s.Cuota.ToString("0.00", inv)</small>
+                        }
+                    </div>
+                    <div class="ap-bet-n">
+                        Apostado <b>@Pesos.Formatear(a.Importe)</b><br />
+                        <span class="@r.Clase">@(r.Etiqueta.Length > 0 ? r.Etiqueta + " " : "")@r.Valor</span>
+                    </div>
+                </div>
+                @if (a.EsCombinada)
+                {
+                    <div class="ap-legs">
+                        @foreach (var s in a.Selecciones)
+                        {
+                            <div>
+                                <span>@s.Seleccion<small>@(s.DetalleDisponible ? $" · {s.Partido} · {s.Mercado}" : "")</small></span>
+                                <span>@s.Cuota.ToString("0.00", inv)</span>
+                                <span class="ap-st @s.Estado">@s.Estado</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </article>
+        }
+    </div>
+
+    <div id="panelMovimientos" hidden>
+        @if (Model.Movimientos.Count == 0)
+        {
+            <div class="cat-empty"><p>Todavía no hay movimientos de saldo.</p></div>
+        }
+        else
+        {
+            <div class="ap-mov">
+                @foreach (var m in Model.Movimientos)
+                {
+                    <div class="ap-mv">
+                        <span>@m.Concepto<small>@m.Fecha · @m.Tipo</small></span>
+                        <span class="@(m.EsCredito ? "cr" : "db")">@(m.EsCredito ? "+" : "−") @Pesos.Formatear(m.Importe)</span>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Pestañas: filtran en el navegador las apuestas ya cargadas (no hay mas consultas al servidor).
+        (function () {
+            var tabs = document.getElementById('tabsApuestas');
+            if (!tabs) return;
+            tabs.addEventListener('click', function (e) {
+                var b = e.target.closest('button[data-filtro]');
+                if (!b) return;
+                tabs.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-selected', x === b ? 'true' : 'false'); });
+                var f = b.dataset.filtro;
+                document.getElementById('panelApuestas').hidden = (f === 'mov');
+                document.getElementById('panelMovimientos').hidden = (f !== 'mov');
+                document.querySelectorAll('#panelApuestas .ap-bet').forEach(function (a) {
+                    var st = a.dataset.estado;
+                    a.hidden = !(f === 'todas' || f === 'mov' || (f === 'resueltas' ? st !== 'PENDIENTE' : st === f));
+                });
+            });
+        })();
+    </script>
+}

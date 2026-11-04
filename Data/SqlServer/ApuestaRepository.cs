@@ -56,6 +56,71 @@ namespace CasaApuestas.Data.SqlServer
             }
         }
 
+        public async Task<IReadOnlyList<FilaApuesta>> ListarApuestasDeClienteAsync(int idCliente, CancellationToken ct = default)
+        {
+            var conexion = _context.Database.GetDbConnection();
+            var cerrar = conexion.State != ConnectionState.Open;
+            if (cerrar) await conexion.OpenAsync(ct);
+            try
+            {
+                await using var cmd = conexion.CreateCommand();
+                // Solo las columnas necesarias. id_cliente se usa para FILTRAR (siempre el de la sesion) pero no se devuelve.
+                cmd.CommandText =
+                    @"SELECT id_apuesta, fecha_apuesta, importe, cuota_total, posible_ganancia, estado_apuesta,
+                             id_detalle, id_cuota, cuota, estado_seleccion
+                      FROM dbo.vw_DetalleApuestas
+                      WHERE id_cliente = @id_cliente
+                      ORDER BY fecha_apuesta DESC, id_apuesta DESC, id_detalle";
+                cmd.Parameters.Add(new SqlParameter("@id_cliente", SqlDbType.Int) { Value = idCliente });
+
+                var filas = new List<FilaApuesta>();
+                await using var r = await cmd.ExecuteReaderAsync(ct);
+                while (await r.ReadAsync(ct))
+                {
+                    filas.Add(new FilaApuesta(r.GetInt64(0), r.GetDateTime(1), r.GetDecimal(2), r.GetDecimal(3), r.GetDecimal(4),
+                        r.GetString(5), r.GetInt64(6), r.GetInt32(7), r.GetDecimal(8), r.GetString(9)));
+                }
+                return filas;
+            }
+            finally
+            {
+                if (cerrar) await conexion.CloseAsync();
+            }
+        }
+
+        public async Task<IReadOnlyList<MovimientoSaldoFila>> ListarMovimientosAsync(int idCliente, int maximo, CancellationToken ct = default)
+        {
+            var conexion = _context.Database.GetDbConnection();
+            var cerrar = conexion.State != ConnectionState.Open;
+            if (cerrar) await conexion.OpenAsync(ct);
+            try
+            {
+                await using var cmd = conexion.CreateCommand();
+                // Mismo gestor: el JOIN Movimiento_Saldo -> Saldo es valido (la regla es no hacer JOIN ENTRE gestores).
+                cmd.CommandText =
+                    @"SELECT TOP (@maximo) m.id_movimiento, m.fecha, m.tipo, m.importe, m.concepto, m.id_apuesta
+                      FROM dbo.Movimiento_Saldo m
+                      JOIN dbo.Saldo s ON s.id_saldo = m.id_saldo
+                      WHERE s.id_cliente = @id_cliente
+                      ORDER BY m.fecha DESC, m.id_movimiento DESC";
+                cmd.Parameters.Add(new SqlParameter("@id_cliente", SqlDbType.Int) { Value = idCliente });
+                cmd.Parameters.Add(new SqlParameter("@maximo", SqlDbType.Int) { Value = maximo });
+
+                var lista = new List<MovimientoSaldoFila>();
+                await using var r = await cmd.ExecuteReaderAsync(ct);
+                while (await r.ReadAsync(ct))
+                {
+                    lista.Add(new MovimientoSaldoFila(r.GetInt64(0), r.GetDateTime(1), r.GetString(2), r.GetDecimal(3),
+                        r.IsDBNull(4) ? "" : r.GetString(4), r.IsDBNull(5) ? null : r.GetInt64(5)));
+                }
+                return lista;
+            }
+            finally
+            {
+                if (cerrar) await conexion.CloseAsync();
+            }
+        }
+
         public async Task<ResultadoRegistro> RegistrarAsync(int idCliente, IReadOnlyList<(int IdCuota, decimal Cuota)> selecciones,
             decimal importe, string clave, decimal premioMaximo, CancellationToken ct = default)
         {

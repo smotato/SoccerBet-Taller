@@ -46,7 +46,10 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
   `PartidoService` (sin JOIN entre gestores, cache de 3 min para equipos). Las cuotas se ven pero aun no se pueden pulsar (RF9).
   Tambien hay catalogo de equipos/plantillas (`/Catalogo/Equipos`) y tabla de posiciones calculada (`/Posiciones`).
   `[Authorize]` se usa solo en las paginas del cliente (apostar, mis apuestas, billetera) cuando existan.
-- Pendiente: apostar, mis apuestas, simulador y liquidacion, MongoDB, nube.
+- Apostar (RF9) y Mis apuestas (RF10) hechos para partidos PROGRAMADO: detalle de partido `/Partidos/Detalle/{id}`, cupon sencillo/combinado
+  (home y detalle), `POST /Apuestas/Confirmar` (validacion en servidor, idempotencia por clave, `sp_RegistrarApuesta`) y `/Apuestas`
+  (Mis apuestas, solo lectura de `vw_DetalleApuestas` y `Movimiento_Saldo`). Limites en `appsettings.json` (`Apuestas`).
+- Pendiente: retiros simulados (5b), simulador y liquidacion, apuestas en vivo y cash out, MongoDB, nube.
 - Entidades `Cliente` y `Saldo`: SOLO LECTURA desde C# (siempre `AsNoTracking()`, nunca `SaveChanges` sobre ellas).
   Solo `Login` se actualiza desde C# (intentos fallidos, bloqueo, ultimo_login).
 - Mockups de referencia (HTML): `docs/mockups/login.html`, `docs/mockups/home.html`, `docs/mockups/equipos.html` y

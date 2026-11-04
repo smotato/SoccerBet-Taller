@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using CasaApuestas.Data.Postgres;
 using CasaApuestas.Data.SqlServer;
 using CasaApuestas.Models.Apuestas;
 using CasaApuestas.Models.Partidos;
@@ -35,18 +34,16 @@ namespace CasaApuestas.Services
         private static readonly Regex ClaveValida = new("^[A-Za-z0-9-]{8,64}$", RegexOptions.Compiled);
 
         private readonly IApuestaRepository _apuestas;
-        private readonly IPartidoRepository _partidos;
-        private readonly IEquiposCache _catalogo;
+        private readonly IContextoCuotasLoader _contexto;
         private readonly ISaldoService _saldo;
         private readonly ApuestasOptions _opc;
         private readonly ILogger<ApuestaService> _log;
 
-        public ApuestaService(IApuestaRepository apuestas, IPartidoRepository partidos, IEquiposCache catalogo,
+        public ApuestaService(IApuestaRepository apuestas, IContextoCuotasLoader contexto,
             ISaldoService saldo, IOptions<ApuestasOptions> opciones, ILogger<ApuestaService> log)
         {
             _apuestas = apuestas;
-            _partidos = partidos;
-            _catalogo = catalogo;
+            _contexto = contexto;
             _saldo = saldo;
             _opc = opciones.Value;
             _log = log;
@@ -85,7 +82,7 @@ namespace CasaApuestas.Services
             if (errores.Count > 0) return Invalida("Revisa tu cupón.", errores);
 
             // ---- 3. Cada cuota se relee en PostgreSQL ----
-            var ctx = await CargarContextoAsync(sels.Select(s => s.IdCuota).ToList(), ct);
+            var ctx = await _contexto.CargarAsync(sels.Select(s => s.IdCuota).ToList(), ct);
             var vistos = new Dictionary<(int Partido, int Mercado), string>();
             var validas = new List<(SeleccionRequest Pedida, Cuota Actual)>();
 
@@ -214,12 +211,12 @@ namespace CasaApuestas.Services
         {
             // Los textos (partido, mercado, seleccion) se buscan en PostgreSQL/MySQL; si no estan disponibles se muestran
             // genericos. La cuota que se muestra es siempre la GUARDADA en la apuesta.
-            Contexto ctx;
-            try { ctx = await CargarContextoAsync(g.Selecciones.Select(s => s.IdCuota).ToList(), ct); }
+            ContextoCuotas ctx;
+            try { ctx = await _contexto.CargarAsync(g.Selecciones.Select(s => s.IdCuota).ToList(), ct); }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 _log.LogWarning(ex, "No se pudieron leer los textos de la apuesta {IdApuesta}.", g.IdApuesta);
-                ctx = Contexto.Vacio;
+                ctx = ContextoCuotas.Vacio;
             }
             var sel = g.Selecciones.Select(s => ctx.Cuotas.TryGetValue(s.IdCuota, out var c)
                 ? Registrada(ctx, c, s.Cuota)
@@ -253,62 +250,10 @@ namespace CasaApuestas.Services
             };
         }
 
-        private static SeleccionRegistrada Registrada(Contexto ctx, Cuota c, decimal cuota)
+        private static SeleccionRegistrada Registrada(ContextoCuotas ctx, Cuota c, decimal cuota)
         {
             var t = ctx.Textos(c);
             return new SeleccionRegistrada(c.IdCuota, t.Partido, t.Mercado, t.Seleccion, cuota);
-        }
-
-        // ---- Carga de datos (PostgreSQL para validar; MySQL solo para los nombres) ----
-
-        private sealed class Contexto
-        {
-            public static readonly Contexto Vacio = new(new(), new(), new(), new());
-
-            public Dictionary<int, Cuota> Cuotas { get; }
-            public Dictionary<int, Partido> Partidos { get; }
-            public Dictionary<int, Mercado> Mercados { get; }
-            public Dictionary<int, (string Local, string Visitante)> Equipos { get; }
-
-            public Contexto(Dictionary<int, Cuota> cuotas, Dictionary<int, Partido> partidos, Dictionary<int, Mercado> mercados,
-                Dictionary<int, (string, string)> equiposPorPartido)
-            {
-                Cuotas = cuotas; Partidos = partidos; Mercados = mercados; Equipos = equiposPorPartido;
-            }
-
-            public (string Partido, string Mercado, string Seleccion) Textos(Cuota c)
-            {
-                var hay = Equipos.TryGetValue(c.IdPartido, out var e);
-                var local = hay ? e.Local : "Local";
-                var visita = hay ? e.Visitante : "Visitante";
-                var partido = hay ? $"{local} vs {visita}" : $"Partido #{c.IdPartido}";
-                var mercado = Mercados.TryGetValue(c.IdMercado, out var m) ? m.Nombre : $"Mercado #{c.IdMercado}";
-                return (partido, mercado, EtiquetaCuota.Texto(c, local, visita));
-            }
-        }
-
-        private async Task<Contexto> CargarContextoAsync(IReadOnlyCollection<int> idsCuota, CancellationToken ct)
-        {
-            // PostgreSQL: lo que valida el servidor. Si esta caido la excepcion sube y el controlador responde 503.
-            var cuotas = (await _partidos.ListarCuotasPorIdsAsync(idsCuota, ct)).ToDictionary(c => c.IdCuota);
-            var partidos = (await _partidos.ListarPartidosPorIdsAsync(cuotas.Values.Select(c => c.IdPartido).Distinct().ToList(), ct))
-                .ToDictionary(p => p.IdPartido);
-            var mercados = (await _partidos.ListarMercadosAsync(ct)).ToDictionary(m => m.IdMercado);
-
-            // MySQL: solo nombres para los mensajes. Si falla no se bloquea la apuesta: se usan textos genericos.
-            var equiposPorPartido = new Dictionary<int, (string, string)>();
-            try
-            {
-                var nombres = await _catalogo.ObtenerEquiposAsync(partidos.Values.SelectMany(p => new[] { p.IdEquipoLocal, p.IdEquipoVisitante }), ct);
-                foreach (var p in partidos.Values)
-                    if (nombres.TryGetValue(p.IdEquipoLocal, out var l) && nombres.TryGetValue(p.IdEquipoVisitante, out var v))
-                        equiposPorPartido[p.IdPartido] = (l.Nombre, v.Nombre);
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                _log.LogWarning(ex, "No se pudieron leer los nombres de los equipos para los mensajes del cupon.");
-            }
-            return new Contexto(cuotas, partidos, mercados, equiposPorPartido);
         }
     }
 }

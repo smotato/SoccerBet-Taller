@@ -1,4 +1,5 @@
 using CasaApuestas.Models.Apuestas;
+using CasaApuestas.Models.ViewModels;
 using CasaApuestas.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,13 +13,38 @@ namespace CasaApuestas.Controllers
     [Authorize]
     public class ApuestasController : Controller
     {
+        private const string MensajeSinApuestas = "No pudimos cargar tus apuestas en este momento. Intenta de nuevo en unos minutos.";
+
         private readonly IApuestaService _servicio;
+        private readonly IMisApuestasService _misApuestas;
         private readonly ILogger<ApuestasController> _log;
 
-        public ApuestasController(IApuestaService servicio, ILogger<ApuestasController> log)
+        public ApuestasController(IApuestaService servicio, IMisApuestasService misApuestas, ILogger<ApuestasController> log)
         {
             _servicio = servicio;
+            _misApuestas = misApuestas;
             _log = log;
+        }
+
+        // GET /Apuestas  ->  "Mis apuestas". Requiere sesion de cliente (sin sesion redirige al login).
+        // NoStore: son datos personales; tras cerrar sesion, "Atras" no debe mostrarlos desde la cache del navegador.
+        [HttpGet]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public async Task<IActionResult> Index(CancellationToken ct)
+        {
+            // El id del cliente sale SIEMPRE de la sesion (claim): no existe ningun parametro para pedir las apuestas de otro.
+            if (!int.TryParse(User.FindFirst(AccountController.ClaimIdCliente)?.Value, out var idCliente))
+                return Forbid();
+
+            try
+            {
+                return View(await _misApuestas.ObtenerAsync(idCliente, ct));
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _log.LogError(ex, "No se pudieron leer las apuestas del cliente {IdCliente} (SQL Server).", idCliente);
+                return View(new MisApuestasViewModel { Error = MensajeSinApuestas });
+            }
         }
 
         // POST /Apuestas/Confirmar   (sin sesion: 401; sin token antiforgery: 400)

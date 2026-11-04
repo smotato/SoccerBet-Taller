@@ -46,11 +46,11 @@ ser **sencillas o combinadas**. Ver "Reglas de apuestas" mas abajo.
   - Valor = importe x producto de (cuota guardada / cuota actual) por seleccion x 0,95 (margen configurable). Seleccion GANADA: cuota actual 1,00; ANULADA: no cuenta. Tope: la ganancia potencial. Pesos enteros.
   - Disponible solo si ninguna seleccion perdio y las pendientes tienen mercado **abierto**. **El boton se bloquea cuando el valor sea menor a $ 1** (o el mercado este cerrado).
   - Al confirmar, el servidor recalcula; si el valor cambio, pide aceptar el nuevo. `sp_CashOut` marca CASHOUT solo si sigue PENDIENTE, guarda `valor_cashout` y acredita una sola vez. La liquidacion ignora apuestas que ya no estan PENDIENTE.
-- [ ] RF9 Apostar con un cupon. Requiere sesion. Una seleccion = apuesta **sencilla**; 2 o mas selecciones = apuesta **combinada** (varias del mismo partido, con la regla de "una por mercado"). Partidos `PROGRAMADO` o `EN_VIVO` con cuota disponible y saldo suficiente.
+- [x] RF9 Apostar con un cupon. Requiere sesion. Una seleccion = apuesta **sencilla**; 2 o mas selecciones = apuesta **combinada** (varias del mismo partido, con la regla de "una por mercado"). Partidos `PROGRAMADO` o `EN_VIVO` con cuota disponible y saldo suficiente.
   - La cuota la lee siempre el servidor en PostgreSQL en el momento de apostar; nunca se confia en la que envia el navegador. Si la cuota cambio desde que el cliente la vio, se le muestra la nueva y debe aceptarla.
   - Un doble clic o un reenvio no debe crear dos apuestas (clave de idempotencia por cupon).
   - Solo se descuenta el importe una vez, por el procedimiento almacenado, dentro de una transaccion.
-- [ ] RF10 "Mis apuestas": historial con estado (PENDIENTE / GANADA / PERDIDA / ANULADA / CASHOUT), las selecciones de cada combinada con su estado individual, y movimientos de saldo.
+- [x] RF10 "Mis apuestas": historial con estado (PENDIENTE / GANADA / PERDIDA / ANULADA / CASHOUT), las selecciones de cada combinada con su estado individual, y movimientos de saldo.
 
 ### Simulacion y liquidacion (PostgreSQL + MongoDB + SQL Server)
 - [ ] RF13 Simulador automatico de partidos (servicio en segundo plano): inicia cada partido a su hora (EN_VIVO), simula el juego con tiempo acelerado, genera goles/eventos en MongoDB y lo finaliza con su marcador. Cuando se acaban los partidos programados, crea la siguiente jornada.

@@ -13,6 +13,7 @@
         autenticado: raiz.dataset.autenticado === '1',
         loginUrl: raiz.dataset.loginUrl,
         confirmarUrl: raiz.dataset.confirmarUrl,
+        misApuestasUrl: raiz.dataset.misApuestasUrl,
         min: Number(raiz.dataset.min),
         max: Number(raiz.dataset.max),
         maxSel: Number(raiz.dataset.maxSel),
@@ -277,6 +278,8 @@
             cuerpo.appendChild(el('div', 'ap-msg warn', 'El premio se limitó al máximo por apuesta.'));
         var otra = el('button', 'ap-btn', 'Seguir apostando'); otra.type = 'button'; otra.id = 'cuponNuevo';
         cuerpo.appendChild(otra);
+        var ver = el('a', 'ap-btn ap-btn-sec', 'Ver Mis apuestas'); ver.href = cfg.misApuestasUrl;
+        cuerpo.appendChild(ver);
     }
 
     // ---- Eventos del cupon ------------------------------------------------------------------------------------

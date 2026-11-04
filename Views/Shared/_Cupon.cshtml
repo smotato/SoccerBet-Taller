@@ -12,6 +12,7 @@
        data-autenticado="@(esCliente ? "1" : "0")"
        data-login-url="@Url.Action("Login", "Account")"
        data-confirmar-url="@Url.Action("Confirmar", "Apuestas")"
+       data-mis-apuestas-url="@Url.Action("Index", "Apuestas")"
        data-min="@o.ImporteMinimo.ToString("0", inv)"
        data-max="@o.ImporteMaximo.ToString("0", inv)"
        data-max-sel="@o.MaxSelecciones"

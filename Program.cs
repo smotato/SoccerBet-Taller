@@ -118,7 +118,9 @@ builder.Services.AddOptions<CasaApuestas.Services.ApuestasOptions>()
         "Falta o es invalida la seccion 'Apuestas' de appsettings.json (ImporteMinimo, ImporteMaximo, MaxSelecciones, PremioMaximo).")
     .ValidateOnStart();
 builder.Services.AddScoped<CasaApuestas.Data.SqlServer.IApuestaRepository, CasaApuestas.Data.SqlServer.ApuestaRepository>();
+builder.Services.AddScoped<CasaApuestas.Services.IContextoCuotasLoader, CasaApuestas.Services.ContextoCuotasLoader>();
 builder.Services.AddScoped<CasaApuestas.Services.IApuestaService, CasaApuestas.Services.ApuestaService>();
+builder.Services.AddScoped<CasaApuestas.Services.IMisApuestasService, CasaApuestas.Services.MisApuestasService>();
 
 var app = builder.Build();
 
