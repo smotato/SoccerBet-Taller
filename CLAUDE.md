@@ -28,8 +28,10 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
   `Movimiento_Saldo`: el dinero solo cambia a traves de procedimientos almacenados. Si falta un permiso, pedir el minimo necesario.
 - **MySQL**: la app tambien usa `soccerbet_app`, solo con `SELECT` sobre `soccerbet_catalogo.*` (`db/mysql/00_usuario.sql`, ignorado por Git). Nunca `root`.
 - **PostgreSQL**: `soccerbet_app` con `SELECT` en todo e `INSERT/UPDATE` solo en `calendario`, `partido` y `cuota` (`db/postgres/03_usuario.sql`, ignorado por Git). Nunca `postgres`.
+- **MongoDB**: la app usa el usuario `soccerbet_app` con rol `readWrite` solo sobre la base `soccerbet` (`db/mongo/03_usuario.js`, ignorado por
+  Git; en el repo solo `03_usuario.js.ejemplo`). Nunca `root`. En la fase actual solo se lee (reglas); la escritura se usara para eventos.
 - **user-secrets** (clave -> contenido): `ConnectionStrings:DefaultConnection` (SQL Server, `User Id=soccerbet_app`),
-  `ConnectionStrings:MySql` (`User=soccerbet_app`), `Wompi:*` (llaves de pruebas y URLs del Dev Tunnel), `Firebase:ProjectId` y
+  `ConnectionStrings:MySql` (`User=soccerbet_app`), `ConnectionStrings:Postgres` y `ConnectionStrings:Mongo` (ambas con `soccerbet_app`), `Wompi:*` (llaves de pruebas y URLs del Dev Tunnel), `Firebase:ProjectId` y
   `Firebase:CredentialsPath` (el JSON de la cuenta de servicio vive fuera del proyecto, en `C:\secretos\`).
   Los scripts de `db/` solo llevan contrasenas **placeholder** (por ejemplo `CAMBIA_ESTA_CLAVE`); la clave real solo existe en user-secrets
   y en la BD. `docker-compose.yml` lee las contrasenas del contenedor desde `.env` (ignorado por Git).
@@ -51,7 +53,10 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
   (Mis apuestas, solo lectura de `vw_DetalleApuestas` y `Movimiento_Saldo`). Limites en `appsettings.json` (`Apuestas`).
 - Retiros simulados (RF16) hechos: boton "Retirar" en la cabecera y pagina `/Billetera/Retirar` (formulario con clave de idempotencia,
   `sp_RetirarSaldo`, lista "Mis retiros"). El minimo esta en `appsettings.json` (`Retiros`); el maximo es el saldo.
-- Pendiente: simulador y liquidacion, apuestas en vivo y cash out, MongoDB, nube.
+- Pagina publica de reglas (RF8) hecha: `/Reglas` lee de MongoDB (`soccerbet.reglas`, solo reglas activas) con `ReglaRepository` (solo
+  lectura), cache en memoria de unos minutos (`Mongo:CacheMinutos`) y `IMongoClient` singleton perezoso (la app arranca aunque Mongo
+  este caido; `Mongo:ServerSelectionTimeoutSeconds` evita que la pagina se cuelgue). Enlazada desde el menu lateral, "Ayuda" y el cupon.
+- Pendiente: simulador y liquidacion, apuestas en vivo y cash out, eventos y alineaciones en MongoDB (RF7), nube.
 - Entidades `Cliente` y `Saldo`: SOLO LECTURA desde C# (siempre `AsNoTracking()`, nunca `SaveChanges` sobre ellas).
   Solo `Login` se actualiza desde C# (intentos fallidos, bloqueo, ultimo_login).
 - Mockups de referencia (HTML): `docs/mockups/login.html`, `docs/mockups/home.html`, `docs/mockups/equipos.html` y

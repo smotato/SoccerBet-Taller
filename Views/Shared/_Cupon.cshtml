@@ -21,4 +21,6 @@
     @Html.AntiForgeryToken()
     <h2 class="ap-slip-head">Cupón <span id="cuponTipo" class="ap-slip-tipo"></span></h2>
     <div class="ap-slip-body" id="cuponCuerpo" aria-live="polite"></div>
+    @* Siempre visible (cupon vacio, con selecciones o tras apostar). Misma pestana: el cupon se conserva en sessionStorage. *@
+    <div class="ap-slip-foot"><a class="ap-link" href="@Url.Action("Index", "Reglas")#apuestas"><i class="bi bi-journal-text" aria-hidden="true"></i> Ver reglas</a></div>
 </aside>

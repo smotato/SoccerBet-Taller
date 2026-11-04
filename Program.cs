@@ -130,6 +130,29 @@ builder.Services.AddScoped<CasaApuestas.Services.IContextoCuotasLoader, CasaApue
 builder.Services.AddScoped<CasaApuestas.Services.IApuestaService, CasaApuestas.Services.ApuestaService>();
 builder.Services.AddScoped<CasaApuestas.Services.IMisApuestasService, CasaApuestas.Services.MisApuestasService>();
 
+// MongoDB (reglas, RF8; mas adelante eventos y alineaciones): quinto gestor. Las opciones (base, tiempo de espera, cache) salen de
+// appsettings.json ("Mongo") y la cadena de user-secrets. IMongoClient es UN SOLO cliente compartido (singleton, seguro entre
+// hilos). La fabrica solo se ejecuta cuando alguien lo pide por primera vez (la primera visita a /Reglas) y el driver conecta
+// al hacer la primera operacion: la app arranca aunque Mongo este caido y el resto del sitio no depende de el.
+builder.Services.AddOptions<CasaApuestas.Data.Mongo.MongoOptions>()
+    .Bind(builder.Configuration.GetSection(CasaApuestas.Data.Mongo.MongoOptions.Seccion))
+    .Validate(CasaApuestas.Data.Mongo.MongoOptions.EsValida,
+        "Falta o es invalida la seccion 'Mongo' de appsettings.json (Database, ServerSelectionTimeoutSeconds, CacheMinutos).")
+    .ValidateOnStart();
+builder.Services.AddSingleton<MongoDB.Driver.IMongoClient>(sp =>
+{
+    var cadena = sp.GetRequiredService<IConfiguration>().GetConnectionString("Mongo");
+    if (string.IsNullOrWhiteSpace(cadena))
+        throw new InvalidOperationException("Falta ConnectionStrings:Mongo (configurala con user-secrets).");
+    var espera = TimeSpan.FromSeconds(sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<CasaApuestas.Data.Mongo.MongoOptions>>().Value.ServerSelectionTimeoutSeconds);
+    var ajustes = MongoDB.Driver.MongoClientSettings.FromConnectionString(cadena);
+    ajustes.ServerSelectionTimeout = espera;   // con Mongo caido la pagina falla en unos segundos, no en los 30 s por defecto
+    ajustes.ConnectTimeout = espera;
+    return new MongoDB.Driver.MongoClient(ajustes);
+});
+builder.Services.AddScoped<CasaApuestas.Data.Mongo.IReglaRepository, CasaApuestas.Data.Mongo.ReglaRepository>();
+builder.Services.AddScoped<CasaApuestas.Services.IReglasService, CasaApuestas.Services.ReglasService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

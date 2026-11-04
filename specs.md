@@ -38,7 +38,7 @@ ser **sencillas o combinadas**. Ver "Reglas de apuestas" mas abajo.
 - [ ] RF5 Menu lateral ocultable (3 rayitas) y filtros por pestanas.
 - [ ] RF6 Tabla de posiciones, equipos y jugadores por equipo (con escudo y foto).
 - [ ] RF7 Detalle de partido: marcador y minuto, eventos (goles, tarjetas) y alineaciones desde MongoDB, y **todos los mercados del partido con sus cuotas, que se pueden agregar al cupon** (1X2, Total de goles 2.5 y Ambos equipos anotan; no hay mas mercados). Se llega haciendo clic en un partido del home o de la lista. Publico para ver; apostar requiere sesion.
-- [ ] RF8 Pagina "Reglas / como apostar" con las reglas guardadas en MongoDB.
+- [x] RF8 Pagina "Reglas / como apostar" con las reglas guardadas en MongoDB.
 
 ### Apuestas (SQL Server)
 - [x] RF16 Retiro de saldo **simulado**. Pagina "Retirar" (boton junto a Recargar): importe (minimo $ 10.000, maximo el saldo) y medio simulado (Nequi, PSE o cuenta bancaria). Se aprueba **al instante**: `sp_RetirarSaldo` descuenta el saldo una sola vez (idempotente, nunca negativo) y registra un DEBITO "Retiro simulado". Lista "Mis retiros". Sin Wompi ni Firestore.

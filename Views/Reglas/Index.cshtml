@@ -1,0 +1,79 @@
+@model CasaApuestas.Models.ViewModels.ReglasViewModel
+@using CasaApuestas.Models.ViewModels
+@{
+    ViewData["Title"] = "Reglas";
+}
+
+@* Cada seccion: encabezado oscuro con contador y un acordeon nativo (<details>) por regla. TODO el texto sale de MongoDB y
+   se escribe con @, que lo codifica como HTML: nunca se usa Html.Raw. *@
+@functions {
+    static string Plural(int n) => n == 1 ? "1 regla" : $"{n} reglas";
+}
+
+<div class="cat-crumbs">Ayuda / <b>Reglas</b></div>
+<h1 class="cat-title">Reglas</h1>
+<p class="cat-lead">Cómo se juega el fútbol y cómo funcionan las apuestas en SoccerBet.</p>
+
+@if (Model.Error is not null)
+{
+    <div class="cat-empty" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><p>@Model.Error</p></div>
+}
+else if (Model.Total == 0)
+{
+    <div class="cat-empty"><i class="bi bi-journal-text" aria-hidden="true"></i><p>Todavía no hay reglas publicadas.</p></div>
+}
+else
+{
+    <div class="rg-bar">
+        <nav class="rg-jump" aria-label="Secciones de reglas">
+            <a href="#@Model.Futbol.Id" class="chip">@Model.Futbol.Titulo</a>
+            <a href="#@Model.Apuestas.Id" class="chip">@Model.Apuestas.Titulo</a>
+        </nav>
+        <button type="button" class="rg-toggle" id="rgToggle" aria-pressed="false">Abrir todas</button>
+    </div>
+
+    @foreach (var seccion in new[] { Model.Futbol, Model.Apuestas })
+    {
+        <section class="rg-sec" id="@seccion.Id" aria-labelledby="@(seccion.Id)-t">
+            <h2 id="@(seccion.Id)-t"><span>@seccion.Titulo</span><span class="rg-count">@Plural(seccion.Reglas.Count)</span></h2>
+            @if (seccion.Reglas.Count == 0)
+            {
+                <p class="rg-vacia">Aún no hay reglas en esta sección.</p>
+            }
+            @foreach (var r in seccion.Reglas)
+            {
+                <details class="rg-item">
+                    <summary><span class="rg-n">@r.Orden</span><span class="rg-nombre">@r.Nombre</span></summary>
+                    <p>@r.Descripcion</p>
+                </details>
+            }
+        </section>
+    }
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            var items = function () { return document.querySelectorAll('.rg-item'); };
+            var boton = document.getElementById('rgToggle');
+
+            // "Abrir todas / Cerrar todas"
+            if (boton) boton.addEventListener('click', function () {
+                var abrir = boton.getAttribute('aria-pressed') !== 'true';
+                items().forEach(function (d) { d.open = abrir; });
+                boton.setAttribute('aria-pressed', abrir ? 'true' : 'false');
+                boton.textContent = abrir ? 'Cerrar todas' : 'Abrir todas';
+            });
+
+            // Al llegar con un ancla (por ejemplo desde "Ver reglas" del cupon: /Reglas#apuestas) esa seccion queda abierta.
+            function abrirSeccionDelHash() {
+                var id = decodeURIComponent(location.hash.replace('#', ''));
+                if (!id) return;
+                var sec = document.getElementById(id);
+                if (sec && sec.classList.contains('rg-sec')) sec.querySelectorAll('.rg-item').forEach(function (d) { d.open = true; });
+            }
+            abrirSeccionDelHash();
+            window.addEventListener('hashchange', abrirSeccionDelHash);
+        })();
+    </script>
+}
