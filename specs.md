@@ -10,7 +10,7 @@ Los partidos, cuotas y resultados de la Liga BetPlay se cargan con **datos de pr
 el simulador los hace avanzar (PROGRAMADO -> EN_VIVO -> FINALIZADO) y renueva las jornadas. Ver "Fuente de datos" en `CLAUDE.md`.
 
 ## Roles
-- **CLIENTE**: se registra, inicia sesion, recarga saldo, apuesta, consulta partidos y sus apuestas.
+- **CLIENTE**: se registra, inicia sesion, recupera su contrasena, recarga saldo, apuesta, consulta partidos y sus apuestas.
 - **Visitante** (sin sesion): puede ver el home y los partidos, pero no apostar, ni ver saldo, ni recargar.
 - ADMIN: el rol existe en la BD pero **no hay pantallas ni funciones de admin** en este alcance.
 
@@ -19,10 +19,17 @@ el simulador los hace avanzar (PROGRAMADO -> EN_VIVO -> FINALIZADO) y renueva la
 - [x] RF1 Login con correo y contrasena (con diseno, PasswordHasher, bloqueo tras 5 intentos fallidos, cliente ACTIVO, cookie de 8 h).
 - [x] RF2 Registro de cliente (solo mayores de 18, usar `sp_RegistrarCliente`).
 - [x] RF3 Cerrar sesion (POST con antiforgery) y proteger las paginas que requieren sesion iniciada. El home es publico; `[Authorize]` se aplica solo a las paginas del cliente (apostar, mis apuestas, billetera) cuando existan.
+- [ ] RF15 Recuperar contrasena (**se implementa despues de apostar y de la simulacion**; hoy el enlace "Olvide mi contrasena" del login no hace nada).
+  - El cliente indica su correo y recibe un enlace o codigo de un solo uso, con vencimiento corto (por ejemplo 30 minutos).
+  - La respuesta es la misma exista o no el correo, para no revelar que correos estan registrados.
+  - Al cambiar la contrasena: se guarda con `PasswordHasher`, el codigo se invalida, se reinician `intentos_fallidos` y se desbloquea la cuenta si estaba bloqueada por intentos.
+  - Requiere cambios en SQL Server (donde guardar el codigo y su vencimiento, guardando solo su hash, nunca el codigo en claro) y una forma de entregar el enlace: envio de correo por SMTP o, en desarrollo, mostrarlo en pantalla. Esa decision se toma al empezar este requisito.
 
 ### Billetera (SQL Server + Firebase + Wompi sandbox)
 - [x] RF11 Mostrar saldo en la cabecera (saldo real de `Saldo`, formato `$ 120.000`; visitantes ven Iniciar sesion / Registrarse; el boton Recargar solo aparece con sesion de cliente).
-- [ ] RF12 Recargar saldo con Wompi (modo prueba). El pago se registra en Firestore y el saldo se acredita en SQL Server **una sola vez por pago** (idempotente). Sin retiros.
+- [x] RF12 Recargar saldo con Wompi (modo prueba). El pago se registra en Firestore y el saldo se acredita en SQL Server **una sola vez por pago** (idempotente). Sin retiros.
+  - Medios de prueba: tarjeta, Nequi y PSE segun los habilite el checkout del sandbox. Un pago `PENDING` no acredita nada hasta quedar aprobado; la lista de recargas pendientes tiene un boton "Verificar".
+  - Como `localhost` no es aceptado como `redirect-url` por Wompi, el retorno pasa por un Dev Tunnel y la accion publica `Puente`, que redirige a `localhost` (ver `CLAUDE.md`).
 
 ### Home y catalogo (MySQL + PostgreSQL)
 - [ ] RF4 Home segun `docs/mockups/home.html`: partidos en vivo y proximos de la Liga BetPlay con cuotas 1-X-2, leidos de las BD. Publico.

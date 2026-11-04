@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SoccerBet · Equipos</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F6F8;--ink:#1E1423;--muted:#625A68;--line:#DDE3E8;--blue:#9ABED6;--blue-d:#2F6A8F;--red:#C4372B;color-scheme:light;box-sizing:border-box}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Barlow,system-ui,sans-serif}
+button{font:inherit;cursor:pointer;color:inherit}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.disp{font-family:"Barlow Condensed",sans-serif;font-weight:700}
+header.top{background:var(--blue);position:sticky;top:0;z-index:10}
+.bar{max-width:1320px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:28px}
+.brand{font-size:30px;display:flex;align-items:center;gap:8px}
+.ball{width:15px;height:15px;border-radius:50%;background:var(--ink)}
+nav{display:flex;gap:4px;flex:1}
+nav a{padding:8px 12px;font-weight:600;border-bottom:3px solid transparent}
+nav a.on{border-color:var(--ink)}
+.btn{background:var(--ink);color:#fff;border:0;border-radius:6px;padding:8px 14px;font-weight:600}
+.burger{width:40px;height:40px;border:0;background:transparent;border-radius:6px;display:grid;place-content:center;gap:5px}
+.burger span{display:block;width:22px;height:3px;background:var(--ink);border-radius:2px}
+.shell{display:flex;align-items:flex-start}
+.side{background:var(--blue);width:260px;flex:none;position:sticky;top:56px;height:calc(100vh - 56px);overflow:auto;border-top:1px solid rgba(30,20,35,.15);transition:width .2s}
+.side>*{min-width:260px}
+.shell.collapsed .side{width:0}
+.side h3{margin:0;padding:14px 16px 6px;font-size:13px;font-weight:600}
+.side a{display:flex;align-items:center;gap:10px;padding:11px 16px;font-weight:600;border-left:4px solid transparent}
+.side a:hover{background:rgba(255,255,255,.45)}
+.side a.on{background:#fff;border-color:var(--ink)}
+.side a.sub{padding-left:42px;font-weight:500}
+main{flex:1;min-width:0;max-width:1100px;margin:0 auto;padding:20px}
+/* crumbs + title */
+.crumbs{font-size:13px;color:var(--muted);margin-bottom:6px}
+.crumbs a{color:var(--blue-d);font-weight:600}
+h1{margin:0 0 4px;font:700 34px/1.05 "Barlow Condensed",sans-serif}
+.lead{color:var(--muted);margin:0 0 16px}
+/* mockup control panel */
+.ctl{background:#fff;border:1px dashed #9AA6B0;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.ctl b{color:var(--blue-d)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:5px 12px}
+.seg button.on{background:var(--ink);color:#fff}
+/* team grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:center;text-align:left;width:100%}
+.card:hover{border-color:var(--blue-d);box-shadow:0 2px 10px rgba(30,20,35,.08)}
+.sh{width:46px;height:46px;border-radius:50%;background:#E9EEF2;border:1px solid var(--line);display:grid;place-items:center;font:700 14px "Barlow Condensed",sans-serif;color:var(--muted);flex:none}
+.sh.lg{width:84px;height:84px;font-size:24px}
+.card b{display:block;font-size:16px;line-height:1.2}
+.card small{color:var(--muted);display:block;line-height:1.3}
+/* detail */
+.hero{background:var(--ink);color:#fff;border-radius:10px;padding:20px;display:flex;gap:18px;align-items:center;margin-bottom:16px}
+.hero .sh{background:#2c2233;border-color:#42364a;color:#cfc6d4}
+.hero h1{color:#fff;margin:0}
+.hero p{margin:2px 0 0;color:#cfc6d4}
+.pills{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.pill{background:var(--blue);color:var(--ink);font-size:12px;font-weight:600;border-radius:99px;padding:2px 10px}
+.grp{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.grp>h2{margin:0;background:var(--ink);color:#fff;padding:10px 16px;font-size:14px;font-weight:600;display:flex;justify-content:space-between}
+.grp>h2 span{color:var(--blue)}
+.pl{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line)}
+.pl:last-child{border-bottom:0}
+.num{font:700 20px "Barlow Condensed",sans-serif;color:var(--blue-d);text-align:center}
+.num.na{color:#B4BCC3}
+.nat{color:var(--muted);font-size:13px}
+.back{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 14px;font-weight:600;margin-bottom:12px}
+.note{background:#FFF7DD;border:1px solid #EAD48A;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:12px}
+@media(max-width:900px){.side{position:fixed;left:0;z-index:9;box-shadow:4px 0 16px rgba(30,20,35,.2)}.shell.collapsed .side{box-shadow:none}nav{display:none}}
+@media(max-width:640px){.hero{flex-direction:column;align-items:flex-start}.pl{grid-template-columns:36px 1fr}.pl .nat{grid-column:2}}
+</style>
+</head>
+<body>
+<header class="top"><div class="bar">
+ <button class="burger" id="burger" aria-label="Mostrar u ocultar menú"><span></span><span></span><span></span></button>
+ <a class="brand disp" href="#"><span class="ball"></span>SoccerBet</a>
+ <nav aria-label="Principal"><a class="on" href="#">Deporte</a><a href="#">En vivo</a><a href="#">Mis apuestas</a><a href="#">Promociones</a><a href="#">Ayuda</a></nav>
+ <a href="#" style="font-weight:600;text-decoration:underline">Registrarse</a><button class="btn">Iniciar sesión</button>
+</div></header>
+<div class="shell" id="shell">
+ <aside class="side" aria-label="Menú">
+  <h3>Popular</h3>
+  <a href="#">Mis apuestas</a><a href="#">Destacados</a><a href="#">En vivo ahora</a>
+  <h3>Competiciones</h3>
+  <a class="on" href="#" id="lnkEq">Liga colombiana</a>
+  <a class="sub" href="#" id="lnkEq2">Equipos y plantillas</a>
+  <a class="sub" href="#">Tabla de posiciones</a>
+ </aside>
+ <main>
+  <div class="ctl">
+   <span><b>Mockup:</b> solo sirve para decidir el diseño.</span>
+   <span>Jugadores sin posición:
+    <span class="seg" role="group" aria-label="Tratamiento de jugadores sin posición">
+     <button class="on" data-v="grupo">Grupo "Sin posición"</button><button data-v="final">Al final, sin etiqueta</button>
+    </span></span>
+  </div>
+  <section id="listView"></section>
+  <section id="detailView" hidden></section>
+ </main>
+</div>
+<script>
+const TEAMS=[
+ ["Atlético Nacional","Medellín","Atanasio Girardot",44000],["Millonarios FC","Bogotá","El Campín",36300],["Junior de Barranquilla","Barranquilla","Metropolitano Roberto Meléndez",46692],
+ ["América de Cali","Cali","Pascual Guerrero",38000],["Independiente Medellín","Medellín","Atanasio Girardot",44000],["Deportivo Cali","Cali","Estadio Deportivo Cali (Palmira)",null],
+ ["Cúcuta Deportivo","Cúcuta","General Santander",null],["Independiente Santa Fe","Bogotá","El Campín",36300],["Fortaleza CEIF","Bogotá","Metropolitano de Techo",null],
+ ["Internacional de Bogotá","Bogotá","Metropolitano de Techo",null],["Atlético Bucaramanga","Bucaramanga","Américo Montanini",null],["Deportes Tolima","Ibagué","Manuel Murillo Toro",null],
+ ["Once Caldas","Manizales","Palogrande",null],["Deportivo Pereira","Pereira","Hernán Ramírez Villegas",null],["Deportivo Pasto","Pasto","Libertad",null],
+ ["Boyacá Chicó","Tunja","La Independencia",null],["Águilas Doradas","Rionegro","Alberto Grisales",null],["Alianza FC","Valledupar","Armando Maestre Pavajeau",null],
+ ["Llaneros FC","Villavicencio","Bello Horizonte-Rey Pelé",null],["Jaguares de Córdoba","Montería","Jaraguay",null]];
+const P={
+ 0:[[34,"Franco Armani","Argentina","PORTERO"],[6,"Andrés Román","Colombiana","DEFENSA"],[16,"William Tesillo","Colombiana","DEFENSA"],[20,"Milton Casco","Argentina","DEFENSA"],[15,"Andrés Reyes","Colombiana","DEFENSA"],[3,"Néider Parra","Colombiana","DEFENSA"],
+    [8,"Mateus Uribe","Colombiana","MEDIOCAMPISTA"],[10,"Edwin Cardona","Colombiana","MEDIOCAMPISTA"],[21,"Jorman Campuzano","Colombiana","MEDIOCAMPISTA"],[23,"James Rodríguez","Colombiana","MEDIOCAMPISTA"],[19,"Juan Rengifo","Colombiana","MEDIOCAMPISTA"],
+    [9,"Alfredo Morelos","Colombiana","DELANTERO"],[7,"Marlos Moreno","Colombiana","DELANTERO"],[17,"Cristian Arango","Colombiana","DELANTERO"],[99,"Ian Poveda","Colombiana","DELANTERO"]],
+ 8:[[null,"Jonathan Marulanda",null,null],[null,"Sebastián Ramírez",null,null],[null,"Jhonier Salas",null,null],[null,"Santiago Cuero",null,null],[null,"Kevin Balanta",null,null],[null,"Cristian Orozco",null,null]]};
+const ORDER=["PORTERO","DEFENSA","MEDIOCAMPISTA","DELANTERO"],LBL={PORTERO:"Porteros",DEFENSA:"Defensas",MEDIOCAMPISTA:"Mediocampistas",DELANTERO:"Delanteros"};
+const ini=n=>n.split(" ").filter(w=>w.length>2&&!["de","del"].includes(w.toLowerCase())).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+let mode="grupo";
+const $=id=>document.getElementById(id);
+function list(){
+ $("listView").innerHTML=`<div class="crumbs">Colombia / <b>Liga BetPlay</b> · Temporada 2026-II</div>
+ <h1>Equipos de la Liga BetPlay</h1><p class="lead">20 equipos. Elige uno para ver su estadio y su plantilla.</p>
+ <div class="grid">${TEAMS.map((t,i)=>`<button class="card" data-i="${i}"><span class="sh" aria-hidden="true">${ini(t[0])}</span><span><b>${t[0]}</b><small>${t[1]} · ${t[2]}</small></span></button>`).join("")}</div>`;
+}
+function player(p){return `<div class="pl"><span class="num ${p[0]==null?"na":""}">${p[0]??"–"}</span><span>${p[1]}</span><span class="nat">${p[2]??""}</span></div>`}
+function detail(i){
+ const t=TEAMS[i],ps=P[i]||[];
+ let body="";
+ if(!ps.length){body=`<div class="note">En este mockup solo hay plantilla de ejemplo para <b>Atlético Nacional</b> (con posiciones) y <b>Fortaleza CEIF</b> (sin posiciones).</div>`}
+ else{
+  const known=ORDER.map(k=>[k,ps.filter(p=>p[3]===k)]).filter(g=>g[1].length);
+  const unk=ps.filter(p=>!p[3]);
+  body=known.map(([k,a])=>`<div class="grp"><h2>${LBL[k]}<span>${a.length}</span></h2>${a.map(player).join("")}</div>`).join("");
+  if(unk.length) body+= mode==="grupo"
+   ?`<div class="grp"><h2>Sin posición<span>${unk.length}</span></h2>${unk.map(player).join("")}</div>`
+   :`<div class="grp"><h2>Plantilla<span>${unk.length}</span></h2>${unk.map(player).join("")}</div>`;
+ }
+ $("detailView").innerHTML=`<button class="back" id="back">← Todos los equipos</button>
+ <div class="hero"><span class="sh lg" aria-hidden="true">${ini(t[0])}</span><div><h1>${t[0]}</h1><p>${t[1]}, Colombia</p>
+ <div class="pills"><span class="pill">🏟 ${t[2]}</span>${t[3]?`<span class="pill">Aforo ${t[3].toLocaleString("es-CO")}</span>`:""}<span class="pill">Liga BetPlay 2026-II</span></div></div></div>
+ ${body}`;
+}
+function show(v,i){$("listView").hidden=v!=="list";$("detailView").hidden=v!=="detail";if(v==="detail")detail(i);window.scrollTo(0,0)}
+document.addEventListener("click",e=>{
+ const c=e.target.closest(".card");if(c){show("detail",+c.dataset.i);return}
+ if(e.target.closest("#back")){show("list");return}
+ const s=e.target.closest(".seg button");if(s){mode=s.dataset.v;document.querySelectorAll(".seg button").forEach(b=>b.classList.toggle("on",b===s));if(!$("detailView").hidden){const cur=TEAMS.findIndex(t=>$("detailView").textContent.includes(t[0]+t[1]));detail(cur<0?8:cur)}}
+});
+$("burger").onclick=()=>$("shell").classList.toggle("collapsed");
+$("lnkEq").onclick=$("lnkEq2").onclick=e=>{e.preventDefault();show("list")};
+list();
+</script>
+</body>
+</html>
