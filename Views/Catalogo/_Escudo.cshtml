@@ -1,0 +1,11 @@
+@* Escudo del equipo: la imagen si hay escudo_url; si es NULL, un circulo con las iniciales (escudo generico).
+   Modelo: (EscudoUrl, Iniciales, Nombre, Grande). *@
+@model (string? Url, string Iniciales, string Nombre, bool Grande)
+@if (!string.IsNullOrWhiteSpace(Model.Url))
+{
+    <img class="cat-sh @(Model.Grande ? "lg" : "")" src="@Model.Url" alt="Escudo de @Model.Nombre" loading="lazy" />
+}
+else
+{
+    <span class="cat-sh @(Model.Grande ? "lg" : "")" aria-hidden="true">@Model.Iniciales</span>
+}

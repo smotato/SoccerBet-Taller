@@ -1,0 +1,56 @@
+@model CasaApuestas.Models.ViewModels.EquipoDetalleViewModel
+@using System.Globalization
+@{
+    ViewData["Title"] = string.IsNullOrEmpty(Model.Nombre) ? "Equipo" : Model.Nombre;
+    var es = CultureInfo.GetCultureInfo("es-CO");
+}
+
+<a class="cat-back" asp-controller="Catalogo" asp-action="Equipos"><i class="bi bi-arrow-left" aria-hidden="true"></i>Todos los equipos</a>
+
+@if (Model.Error is not null)
+{
+    <div class="cat-empty" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><p>@Model.Error</p></div>
+}
+else
+{
+    <div class="cat-hero">
+        <partial name="_Escudo" model="@((Model.EscudoUrl, Model.Iniciales, Model.Nombre, true))" />
+        <div>
+            <h1>@Model.Nombre</h1>
+            <p>@string.Join(", ", new[] { Model.Ciudad, Model.Pais }.Where(s => !string.IsNullOrWhiteSpace(s)))</p>
+            <div class="cat-pills">
+                @if (!string.IsNullOrEmpty(Model.EstadioNombre))
+                {
+                    <span class="cat-pill"><i class="bi bi-geo-alt-fill" aria-hidden="true"></i>@Model.EstadioNombre</span>
+                }
+                @if (Model.EstadioCapacidad is int cap)
+                {
+                    <span class="cat-pill">Aforo @cap.ToString("N0", es)</span>
+                }
+                @if (!string.IsNullOrEmpty(Model.LigaNombre))
+                {
+                    <span class="cat-pill">@Model.LigaNombre @Model.Temporada</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Grupos.Count == 0)
+    {
+        <div class="cat-empty"><i class="bi bi-people" aria-hidden="true"></i><p>Este equipo aún no tiene jugadores registrados.</p></div>
+    }
+    @foreach (var g in Model.Grupos)
+    {
+        <section class="cat-grp">
+            <h2>@g.Titulo<span>@g.Jugadores.Count</span></h2>
+            @foreach (var j in g.Jugadores)
+            {
+                <div class="cat-pl">
+                    <span class="cat-num @(j.Numero is null ? "na" : "")">@(j.Numero?.ToString() ?? "–")</span>
+                    <span>@j.Nombre</span>
+                    <span class="cat-nat">@j.Nacionalidad</span>
+                </div>
+            }
+        </section>
+    }
+}

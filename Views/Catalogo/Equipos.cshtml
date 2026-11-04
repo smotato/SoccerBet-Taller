@@ -1,0 +1,32 @@
+@model CasaApuestas.Models.ViewModels.EquiposListaViewModel
+@{
+    ViewData["Title"] = "Equipos";
+}
+
+<div class="cat-crumbs">@(Model.Pais ?? "Colombia") / <b>@(Model.LigaNombre ?? "Liga BetPlay")</b>@if (!string.IsNullOrEmpty(Model.Temporada)) { <text> · Temporada @Model.Temporada</text> }</div>
+<h1 class="cat-title">Equipos de la @(Model.LigaNombre ?? "Liga BetPlay")</h1>
+
+@if (Model.Error is not null)
+{
+    <div class="cat-empty" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><p>@Model.Error</p></div>
+}
+else if (Model.Equipos.Count == 0)
+{
+    <div class="cat-empty"><i class="bi bi-shield" aria-hidden="true"></i><p>Aún no hay equipos disponibles.</p></div>
+}
+else
+{
+    <p class="cat-lead">@Model.Equipos.Count equipos. Elige uno para ver su estadio y su plantilla.</p>
+    <div class="cat-grid">
+        @foreach (var e in Model.Equipos)
+        {
+            <a class="cat-card" asp-controller="Catalogo" asp-action="Equipo" asp-route-id="@e.IdEquipo">
+                <partial name="_Escudo" model="@((e.EscudoUrl, e.Iniciales, e.Nombre, false))" />
+                <span>
+                    <b>@e.Nombre</b>
+                    <small>@string.Join(" · ", new[] { e.Ciudad, e.EstadioNombre }.Where(s => !string.IsNullOrWhiteSpace(s)))</small>
+                </span>
+            </a>
+        }
+    </div>
+}

@@ -74,6 +74,14 @@ builder.Services.AddSingleton<CasaApuestas.Data.Firebase.IPagoRepository, CasaAp
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// MySQL (catalogo deportivo, solo lectura): contexto propio, separado del de SQL Server.
+// La version del servidor es FIJA (contenedor mysql:8.4) en lugar de ServerVersion.AutoDetect: asi la app no abre una
+// conexion al arrancar y, si MySQL esta apagado, solo falla el catalogo; el login y el resto del sitio siguen funcionando.
+builder.Services.AddDbContext<CasaApuestas.Data.MySql.CatalogoDbContext>(options =>
+    options.UseMySql(builder.Configuration.GetConnectionString("MySql"), new MySqlServerVersion(new Version(8, 4, 0))));
+builder.Services.AddScoped<CasaApuestas.Data.MySql.ICatalogoRepository, CasaApuestas.Data.MySql.CatalogoRepository>();
+builder.Services.AddScoped<CasaApuestas.Services.ICatalogoService, CasaApuestas.Services.CatalogoService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
