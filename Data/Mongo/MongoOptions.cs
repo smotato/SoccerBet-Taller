@@ -26,8 +26,11 @@ namespace CasaApuestas.Data.Mongo
         /// </summary>
         public string ColeccionEventos { get; set; } = "";
 
+        /// <summary>Coleccion de alineaciones (alineaciones). Configurable por la misma razon que ColeccionEventos.</summary>
+        public string ColeccionAlineaciones { get; set; } = "";
+
         public static bool EsValida(MongoOptions o) =>
             !string.IsNullOrWhiteSpace(o.Database) && o.ServerSelectionTimeoutSeconds > 0 && o.CacheMinutos >= 0
-            && !string.IsNullOrWhiteSpace(o.ColeccionEventos);
+            && !string.IsNullOrWhiteSpace(o.ColeccionEventos) && !string.IsNullOrWhiteSpace(o.ColeccionAlineaciones);
     }
 }

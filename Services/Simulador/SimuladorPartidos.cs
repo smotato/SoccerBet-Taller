@@ -26,6 +26,7 @@ namespace CasaApuestas.Services.Simulador
 
         private readonly ISimuladorRepository _repo;
         private readonly IEventoPartidoRepository _eventos;
+        private readonly IAlineacionRepository _alineaciones;
         private readonly IJugadoresCache _jugadores;
         private readonly LiquidadorPartidos _liquidador;
         private readonly IGeneradorJornada _jornadas;
@@ -35,7 +36,9 @@ namespace CasaApuestas.Services.Simulador
 
         private readonly Dictionary<int, PartidoVivo> _vivos = new();
         private readonly List<EventoPartidoDocumento> _pendientes = new();
+        private readonly List<AlineacionDocumento> _alineacionesPendientes = new();
         private readonly object _candado = new();
+        private bool _rellenoAlineacionesHecho;
         // Exclusion mutua EN ESTE PROCESO entre el ciclo del simulador y las acciones del modo demostracion (que llegan por HTTP).
         private readonly SemaphoreSlim _exclusion = new(1, 1);
         private long _ultimoInicio;
@@ -67,12 +70,13 @@ namespace CasaApuestas.Services.Simulador
             public string? UltimaFirmaCuotas { get; set; }  // para no reescribir las cuotas si nada cambio
         }
 
-        public SimuladorPartidos(ISimuladorRepository repo, IEventoPartidoRepository eventos, IJugadoresCache jugadores,
+        public SimuladorPartidos(ISimuladorRepository repo, IEventoPartidoRepository eventos, IAlineacionRepository alineaciones, IJugadoresCache jugadores,
             LiquidadorPartidos liquidador, IGeneradorJornada jornadas,
             IOptions<SimuladorOptions> opciones, TimeProvider reloj, ILogger<SimuladorPartidos> log)
         {
             _repo = repo;
             _eventos = eventos;
+            _alineaciones = alineaciones;
             _jugadores = jugadores;
             _liquidador = liquidador;
             _jornadas = jornadas;
@@ -94,6 +98,7 @@ namespace CasaApuestas.Services.Simulador
         {
             var ahora = FechaColombia.Ahora(_reloj);
 
+            await RellenarAlineacionesUnaVezAsync(ct);
             await SincronizarAsync(await _repo.ListarEnVivoAsync(ct), ct);
             await IniciarSiHayVencidoAsync(ahora, ct);
 
@@ -274,6 +279,10 @@ namespace CasaApuestas.Services.Simulador
             var cuotas = (await _repo.ObtenerCuotasIniciales1X2Async(new[] { p.IdPartido }, ct)).GetValueOrDefault(p.IdPartido);
             var (el, ev) = ModeloGoles.GolesEsperados(cuotas?.Local, cuotas?.Empate, cuotas?.Visitante, _opc.GolesEsperadosPorPartido, _opc.SesgoCuotas);
 
+            // Goleadores y tarjetas salen SOLO de los 11 titulares de la alineacion del partido (la crea el simulador al iniciarlo).
+            var (titularesLocal, titularesVisitante) = await PrepararAlineacionesAsync(p,
+                await _jugadores.ObtenerAsync(p.IdEquipoLocal, ct), await _jugadores.ObtenerAsync(p.IdEquipoVisitante, ct), ct);
+
             return new PartidoVivo
             {
                 Id = p.IdPartido,
@@ -281,8 +290,8 @@ namespace CasaApuestas.Services.Simulador
                 IdVisitante = p.IdEquipoVisitante,
                 EsperadosLocal = el,
                 EsperadosVisitante = ev,
-                JugadoresLocal = await _jugadores.ObtenerAsync(p.IdEquipoLocal, ct),
-                JugadoresVisitante = await _jugadores.ObtenerAsync(p.IdEquipoVisitante, ct),
+                JugadoresLocal = titularesLocal,
+                JugadoresVisitante = titularesVisitante,
                 // Con semilla, cada partido tiene su propia secuencia reproducible.
                 Rng = _opc.Semilla is int s ? new Random(unchecked(s * 31 + p.IdPartido)) : new Random(),
                 Minuto = minuto,
@@ -291,6 +300,68 @@ namespace CasaApuestas.Services.Simulador
                 UltimoTick = _reloj.GetTimestamp(),
                 Cuotas = await _repo.ObtenerCuotasBaseAsync(p.IdPartido, ct)
             };
+        }
+
+        // ---- Alineaciones (RF7) ---------------------------------------------------------------------------------------------
+        // Solo el simulador las escribe. Se guardan con upsert $setOnInsert por (partido, equipo, "INICIAL"): repetir no cambia nada.
+
+        /// <summary>
+        /// Devuelve los titulares de cada equipo. Si el partido ya tiene alineacion en MongoDB se respeta (asi el relleno, un
+        /// reinicio o un reintento nunca contradicen lo ya guardado); si no, se genera y se encola para guardarla. Si Mongo no
+        /// responde se usa la alineacion generada (es determinista, sera la misma) y se reintenta el guardado.
+        /// </summary>
+        private async Task<(IReadOnlyList<Jugador> Local, IReadOnlyList<Jugador> Visitante)> PrepararAlineacionesAsync(
+            PartidoSim p, IReadOnlyList<Jugador> plantillaLocal, IReadOnlyList<Jugador> plantillaVisitante, CancellationToken ct)
+        {
+            IReadOnlyList<AlineacionDocumento> existentes = Array.Empty<AlineacionDocumento>();
+            try { existentes = await _alineaciones.ObtenerPorPartidoAsync(p.IdPartido, ct); }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _log.LogWarning(ex, "No se pudo leer la alineacion del partido {IdPartido} en MongoDB; se genera una.", p.IdPartido);
+            }
+
+            IReadOnlyList<Jugador> Resolver(int idEquipo, IReadOnlyList<Jugador> plantilla)
+            {
+                var doc = existentes.FirstOrDefault(a => a.IdEquipo == idEquipo && a.Tipo == AlineacionDocumento.TipoInicial);
+                if (doc is not null)
+                {
+                    var ids = doc.Jugadores.Where(j => j.Titular).Select(j => j.IdJugador).ToHashSet();
+                    var guardados = plantilla.Where(j => ids.Contains(j.IdJugador)).ToList();
+                    if (guardados.Count > 0) return guardados;
+                }
+                lock (_candado) _alineacionesPendientes.Add(GeneradorAlineaciones.CrearDocumento(p.IdPartido, idEquipo, plantilla));
+                return GeneradorAlineaciones.Elegir(plantilla).Titulares;
+            }
+
+            return (Resolver(p.IdEquipoLocal, plantillaLocal), Resolver(p.IdEquipoVisitante, plantillaVisitante));
+        }
+
+        /// <summary>
+        /// Relleno de UNA sola vez (en el primer ciclo con exito): los partidos EN_VIVO o FINALIZADO que aun no tienen alineacion
+        /// la reciben. Los PROGRAMADO no (su alineacion nace al iniciarse). Es seguro repetirlo, pero tras un exito no se vuelve a hacer.
+        /// </summary>
+        private async Task RellenarAlineacionesUnaVezAsync(CancellationToken ct)
+        {
+            if (_rellenoAlineacionesHecho) return;
+            try
+            {
+                var partidos = await _repo.ListarEnVivoYFinalizadosAsync(ct);
+                var conAlineacion = await _alineaciones.PartidosConAlineacionAsync(partidos.Select(x => x.IdPartido).ToList(), ct);
+
+                var nuevas = new List<AlineacionDocumento>();
+                foreach (var partido in partidos.Where(x => !conAlineacion.Contains(x.IdPartido)))
+                {
+                    nuevas.Add(GeneradorAlineaciones.CrearDocumento(partido.IdPartido, partido.IdEquipoLocal, await _jugadores.ObtenerAsync(partido.IdEquipoLocal, ct)));
+                    nuevas.Add(GeneradorAlineaciones.CrearDocumento(partido.IdPartido, partido.IdEquipoVisitante, await _jugadores.ObtenerAsync(partido.IdEquipoVisitante, ct)));
+                }
+                var insertadas = await _alineaciones.GuardarAsync(nuevas, ct);
+                _rellenoAlineacionesHecho = true;
+                _log.LogInformation("Relleno de alineaciones: {N} partidos sin alineacion, {I} alineaciones creadas.", nuevas.Count / 2, insertadas);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _log.LogWarning(ex, "No se pudo hacer el relleno de alineaciones (Mongo o PostgreSQL); se reintentara en el siguiente ciclo.");
+            }
         }
 
         // ---- 2. Iniciar partidos --------------------------------------------------------------------------------
@@ -501,6 +572,23 @@ namespace CasaApuestas.Services.Simulador
 
         private async Task VaciarEventosAsync(CancellationToken ct)
         {
+            // Primero las alineaciones (los eventos las referencian); si Mongo falla vuelven a la cola, como los eventos.
+            List<AlineacionDocumento> alineaciones;
+            lock (_candado)
+            {
+                alineaciones = _alineacionesPendientes.ToList();
+                _alineacionesPendientes.Clear();
+            }
+            if (alineaciones.Count > 0)
+            {
+                try { await _alineaciones.GuardarAsync(alineaciones, ct); }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    lock (_candado) _alineacionesPendientes.InsertRange(0, alineaciones);
+                    _log.LogWarning(ex, "No se pudieron guardar {N} alineaciones en MongoDB; se reintentara en el siguiente ciclo.", alineaciones.Count);
+                }
+            }
+
             List<EventoPartidoDocumento> lote;
             lock (_candado)
             {

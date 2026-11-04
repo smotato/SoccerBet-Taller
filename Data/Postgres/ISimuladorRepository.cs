@@ -36,6 +36,9 @@ namespace CasaApuestas.Data.Postgres
     {
         Task<IReadOnlyList<PartidoSim>> ListarEnVivoAsync(CancellationToken ct = default);
 
+        /// <summary>Partidos EN_VIVO o FINALIZADO (para el relleno de alineaciones de una sola vez).</summary>
+        Task<IReadOnlyList<PartidoSim>> ListarEnVivoYFinalizadosAsync(CancellationToken ct = default);
+
         /// <summary>PROGRAMADOS por fecha y hora (los primeros N): sirve para encontrar los vencidos y el siguiente.</summary>
         Task<IReadOnlyList<PartidoSim>> ListarProgramadosAsync(int maximo, CancellationToken ct = default);
 

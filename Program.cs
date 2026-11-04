@@ -180,6 +180,7 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddSingleton<CasaApuestas.Data.Postgres.ISimuladorRepository, CasaApuestas.Data.Postgres.SimuladorRepository>();
 builder.Services.AddSingleton<CasaApuestas.Data.Postgres.BloqueoSimulador>();
 builder.Services.AddSingleton<CasaApuestas.Data.Mongo.IEventoPartidoRepository, CasaApuestas.Data.Mongo.EventoPartidoRepository>();
+builder.Services.AddSingleton<CasaApuestas.Data.Mongo.IAlineacionRepository, CasaApuestas.Data.Mongo.AlineacionRepository>();
 builder.Services.AddSingleton<CasaApuestas.Services.Simulador.IJugadoresCache, CasaApuestas.Services.Simulador.JugadoresCache>();
 builder.Services.AddSingleton<CasaApuestas.Data.SqlServer.ILiquidacionRepository, CasaApuestas.Data.SqlServer.LiquidacionRepository>();
 builder.Services.AddSingleton<CasaApuestas.Services.Simulador.LiquidadorPartidos>();

@@ -20,6 +20,12 @@ namespace CasaApuestas.Data.Postgres
             return await LeerPartidosAsync(cmd, ct);
         }
 
+        public async Task<IReadOnlyList<PartidoSim>> ListarEnVivoYFinalizadosAsync(CancellationToken ct = default)
+        {
+            await using var cmd = _fuente.CreateCommand($"SELECT {Columnas} FROM partido WHERE estado IN ('EN_VIVO', 'FINALIZADO') ORDER BY id_partido");
+            return await LeerPartidosAsync(cmd, ct);
+        }
+
         public async Task<IReadOnlyList<PartidoSim>> ListarProgramadosAsync(int maximo, CancellationToken ct = default)
         {
             await using var cmd = _fuente.CreateCommand($"SELECT {Columnas} FROM partido WHERE estado = 'PROGRAMADO' ORDER BY fecha_hora, id_partido LIMIT @maximo");
