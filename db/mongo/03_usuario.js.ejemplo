@@ -1,0 +1,3 @@
+// Copia este archivo como 03_usuario.js (esta en .gitignore) y cambia la clave.
+db = db.getSiblingDB('soccerbet');
+db.createUser({ user: 'soccerbet_app', pwd: 'CAMBIA_ESTA_CLAVE', roles: [{ role: 'readWrite', db: 'soccerbet' }] });

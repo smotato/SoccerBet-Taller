@@ -16,6 +16,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: soccerbet_catalogo
+      MYSQL_APP_PASSWORD: ${MYSQL_APP_PASSWORD}
     ports: ["3306:3306"]
     volumes:
       - mysql_data:/var/lib/mysql
@@ -33,6 +34,9 @@ services:
 
   mongo:
     image: mongo:7
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
     ports: ["27017:27017"]
     volumes:
       - mongo_data:/data/db
