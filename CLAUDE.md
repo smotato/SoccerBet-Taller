@@ -49,7 +49,9 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
 - Apostar (RF9) y Mis apuestas (RF10) hechos para partidos PROGRAMADO: detalle de partido `/Partidos/Detalle/{id}`, cupon sencillo/combinado
   (home y detalle), `POST /Apuestas/Confirmar` (validacion en servidor, idempotencia por clave, `sp_RegistrarApuesta`) y `/Apuestas`
   (Mis apuestas, solo lectura de `vw_DetalleApuestas` y `Movimiento_Saldo`). Limites en `appsettings.json` (`Apuestas`).
-- Pendiente: retiros simulados (5b), simulador y liquidacion, apuestas en vivo y cash out, MongoDB, nube.
+- Retiros simulados (RF16) hechos: boton "Retirar" en la cabecera y pagina `/Billetera/Retirar` (formulario con clave de idempotencia,
+  `sp_RetirarSaldo`, lista "Mis retiros"). El minimo esta en `appsettings.json` (`Retiros`); el maximo es el saldo.
+- Pendiente: simulador y liquidacion, apuestas en vivo y cash out, MongoDB, nube.
 - Entidades `Cliente` y `Saldo`: SOLO LECTURA desde C# (siempre `AsNoTracking()`, nunca `SaveChanges` sobre ellas).
   Solo `Login` se actualiza desde C# (intentos fallidos, bloqueo, ultimo_login).
 - Mockups de referencia (HTML): `docs/mockups/login.html`, `docs/mockups/home.html`, `docs/mockups/equipos.html` y

@@ -6,6 +6,8 @@
         <div class="bal">Saldo<b>@Model.SaldoTexto</b></div>
         @* Recargar: lleva a la pagina de recarga con Wompi (RF12), que exige sesion. *@
         <a class="btn" asp-controller="Recarga" asp-action="Index">Recargar</a>
+        @* Retirar: retiro simulado (RF16), tambien exige sesion. *@
+        <a class="btn ghost" asp-controller="Billetera" asp-action="Retirar">Retirar</a>
         <span class="avatar" title="@Model.Nombre" aria-label="Usuario: @Model.Nombre">@Model.Iniciales</span>
         @* POST con token antiforgery (el tag helper lo agrega solo); data-loader muestra el loader al enviar. *@
         <form asp-controller="Account" asp-action="Logout" method="post" data-loader>

@@ -1,0 +1,117 @@
+@model CasaApuestas.Models.ViewModels.RetirarViewModel
+@{
+    ViewData["Title"] = "Retirar saldo";
+    // Si no se pudieron leer los datos (SQL Server caido) solo se muestra el aviso, sin formulario.
+    var hayDatos = Model.Minimo > 0;
+}
+
+<section class="rc">
+    <h1 class="disp rc-title">Retirar saldo</h1>
+    <p class="rc-sub">Retiro simulado: se aprueba al instante y no se envía dinero real.</p>
+
+    @if (!string.IsNullOrEmpty(Model.Mensaje))
+    {
+        <div class="rc-alert ok" role="status"><i class="bi bi-check-circle-fill" aria-hidden="true"></i>@Model.Mensaje</div>
+    }
+    @if (!string.IsNullOrEmpty(Model.Error))
+    {
+        <div class="rc-alert bad" role="alert"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>@Model.Error</div>
+    }
+
+    @if (hayDatos)
+    {
+        <div class="rc-card">
+            <div class="rc-saldo"><span>Saldo disponible</span><b>@Model.SaldoTexto</b></div>
+
+            <form asp-controller="Billetera" asp-action="Retirar" method="post" data-loader id="form-retiro">
+                @* Clave de idempotencia: un GUID por formulario abierto. Si se envia dos veces, el servidor descuenta una sola vez. *@
+                <input type="hidden" name="clave" value="@Model.Clave" />
+
+                <label for="importe" class="rc-label">Importe a retirar (COP)</label>
+                <input id="importe" name="importe" type="number" inputmode="numeric" class="rc-input"
+                       min="@((long)Model.Minimo)" max="@Model.MaximoEntero" step="1" required placeholder="20000"
+                       value="@Model.ImporteIngresado" disabled="@(!Model.PuedeRetirar)" />
+                <div class="rc-quick" role="group" aria-label="Importes rápidos">
+                    @foreach (var m in new[] { 10000, 20000, 50000, 100000 })
+                    {
+                        <button type="button" class="chip" data-importe="@m">$ @m.ToString("N0", System.Globalization.CultureInfo.InvariantCulture).Replace(',', '.')</button>
+                    }
+                    <button type="button" class="chip" data-importe="@Model.MaximoEntero">Todo el saldo</button>
+                </div>
+                <p class="rc-hint">Mínimo @Model.MinimoTexto · Máximo: tu saldo disponible (@Model.SaldoTexto)</p>
+                @if (!Model.PuedeRetirar)
+                {
+                    <p class="rc-hint"><b>Tu saldo es menor al mínimo de retiro.</b> Recarga para poder retirar.</p>
+                }
+
+                <label for="medio" class="rc-label">Medio de retiro (simulado)</label>
+                <select id="medio" name="medio" class="rc-input rc-select" required disabled="@(!Model.PuedeRetirar)">
+                    @foreach (var m in Model.Medios)
+                    {
+                        <option value="@m" selected="@(m == Model.MedioSeleccionado)">@m</option>
+                    }
+                </select>
+
+                <p></p>
+                <button type="submit" id="btnRetirar" class="btn rc-submit" disabled="@(!Model.PuedeRetirar)">
+                    <i class="bi bi-cash-coin" aria-hidden="true"></i> Retirar
+                </button>
+            </form>
+
+            <div class="rc-test">
+                <b><i class="bi bi-info-circle" aria-hidden="true"></i> Dinero de prueba</b>
+                El retiro se aprueba al instante y descuenta tu saldo de pruebas. No se envía dinero real a ninguna cuenta.
+            </div>
+        </div>
+
+        <h2 class="disp rc-h2">Mis retiros</h2>
+        @if (Model.Retiros.Count == 0)
+        {
+            <p class="rc-empty">Todavía no has hecho retiros.</p>
+        }
+        else
+        {
+            <div class="rc-card rc-list">
+                @foreach (var r in Model.Retiros)
+                {
+                    <div class="rc-row">
+                        <div>
+                            <b>Retiro a @r.Medio</b>
+                            <small>#@r.IdRetiro · @r.Fecha · @r.Estado</small>
+                        </div>
+                        <span class="db">− @r.ImporteTexto</span>
+                    </div>
+                }
+            </div>
+        }
+    }
+</section>
+
+@section Scripts {
+    <script>
+        (function () {
+            var form = document.getElementById('form-retiro');
+            if (!form) return;
+            var importe = document.getElementById('importe');
+            var boton = document.getElementById('btnRetirar');
+
+            // Importes rápidos: solo rellenan el campo; el servidor valida de nuevo (mínimo, saldo, medio).
+            document.querySelectorAll('[data-importe]').forEach(function (b) {
+                b.addEventListener('click', function () { importe.value = b.dataset.importe; });
+            });
+
+            // Usabilidad: tras el primer clic el botón se deshabilita para evitar envíos repetidos. La idempotencia
+            // (la clave del formulario) es lo que realmente protege. Se hace en 'submit', es decir, solo si el
+            // navegador ya aceptó el formulario (campos válidos).
+            var textoOriginal = boton.innerHTML;
+            form.addEventListener('submit', function () {
+                boton.disabled = true;
+                boton.textContent = 'Retirando…';
+            });
+            // Si el usuario vuelve con "Atrás" (página restaurada de la caché), el botón debe quedar usable otra vez.
+            window.addEventListener('pageshow', function (e) {
+                if (e.persisted) { boton.disabled = false; boton.innerHTML = textoOriginal; }
+            });
+        })();
+    </script>
+}

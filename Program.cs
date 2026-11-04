@@ -118,6 +118,14 @@ builder.Services.AddOptions<CasaApuestas.Services.ApuestasOptions>()
         "Falta o es invalida la seccion 'Apuestas' de appsettings.json (ImporteMinimo, ImporteMaximo, MaxSelecciones, PremioMaximo).")
     .ValidateOnStart();
 builder.Services.AddScoped<CasaApuestas.Data.SqlServer.IApuestaRepository, CasaApuestas.Data.SqlServer.ApuestaRepository>();
+
+// Retiros simulados (RF16): el minimo viene de appsettings.json ("Retiros"); si falta o es invalido la app no arranca.
+builder.Services.AddOptions<CasaApuestas.Services.RetirosOptions>()
+    .Bind(builder.Configuration.GetSection(CasaApuestas.Services.RetirosOptions.Seccion))
+    .Validate(CasaApuestas.Services.RetirosOptions.EsValida, "Falta o es invalida la seccion 'Retiros' de appsettings.json (ImporteMinimo).")
+    .ValidateOnStart();
+builder.Services.AddScoped<CasaApuestas.Data.SqlServer.IRetiroRepository, CasaApuestas.Data.SqlServer.RetiroRepository>();
+builder.Services.AddScoped<CasaApuestas.Services.IRetiroService, CasaApuestas.Services.RetiroService>();
 builder.Services.AddScoped<CasaApuestas.Services.IContextoCuotasLoader, CasaApuestas.Services.ContextoCuotasLoader>();
 builder.Services.AddScoped<CasaApuestas.Services.IApuestaService, CasaApuestas.Services.ApuestaService>();
 builder.Services.AddScoped<CasaApuestas.Services.IMisApuestasService, CasaApuestas.Services.MisApuestasService>();
