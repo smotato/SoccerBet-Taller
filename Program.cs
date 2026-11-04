@@ -180,6 +180,11 @@ builder.Services.AddSingleton<CasaApuestas.Services.Simulador.IGeneradorJornada,
 builder.Services.AddSingleton<CasaApuestas.Services.Simulador.SimuladorPartidos>();
 builder.Services.AddHostedService<CasaApuestas.Background.SimuladorHostedService>();
 
+builder.Services.AddOptions<CasaApuestas.Services.VivoOptions>()
+    .Bind(builder.Configuration.GetSection(CasaApuestas.Services.VivoOptions.Seccion))
+    .Validate(CasaApuestas.Services.VivoOptions.EsValida, "Falta o es invalida la seccion 'Vivo' de appsettings.json (IntervaloActualizacionSegundos).")
+    .ValidateOnStart();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -47,7 +47,8 @@ namespace CasaApuestas.Services
             var enVivoOFinal = partido.Estado is "EN_VIVO" or "FINALIZADO";
             var local = Mini(equipos, partido.IdEquipoLocal, enVivoOFinal ? partido.GolesLocal ?? 0 : null);
             var visitante = Mini(equipos, partido.IdEquipoVisitante, enVivoOFinal ? partido.GolesVisitante ?? 0 : null);
-            var programado = partido.Estado == "PROGRAMADO";
+            // Se apuesta antes del partido y durante el (en vivo, solo con la cuota disponible). FINALIZADO / SUSPENDIDO: no.
+            var programado = partido.Estado is "PROGRAMADO" or "EN_VIVO";
 
             var vmMercados = mercados
                 .Select(m => new MercadoViewModel(m.IdMercado, m.Nombre,

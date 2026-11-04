@@ -89,7 +89,7 @@ namespace CasaApuestas.Services
             CuotaViewModel Casilla(string etiqueta, string codigo)
             {
                 var c = cuota1x2.FirstOrDefault(x => x.CodigoSeleccion == codigo);
-                return new CuotaViewModel(etiqueta, c?.Valor, c?.IdCuota, c?.IdMercado);
+                return new CuotaViewModel(etiqueta, c?.Valor, c?.IdCuota, c?.IdMercado, c?.Disponible ?? false);
             }
             var casillas = new[] { Casilla(local.Nombre, "LOCAL"), Casilla("Empate", "EMPATE"), Casilla(visitante.Nombre, "VISITANTE") };
             var idMercado1x2 = cuota1x2.Select(c => c.IdMercado).FirstOrDefault();

@@ -72,12 +72,18 @@ else
         </div>
     }
 
-    @if (!Model.Programado)
+    @if (Model.EnVivo)
+    {
+        <div class="ap-msg warn" role="status">
+            <i class="bi bi-broadcast" aria-hidden="true"></i>
+            Partido en vivo: las cuotas cambian con el marcador y el minuto, y se cierran unos segundos después de cada gol y desde el minuto 85.
+        </div>
+    }
+    else if (!Model.Programado)
     {
         <div class="ap-msg warn" role="status">
             <i class="bi bi-lock" aria-hidden="true"></i>
-            @(Model.EnVivo ? "El partido está en vivo: por ahora solo se puede apostar antes de que empiece."
-              : Model.Estado == "FINALIZADO" ? "El partido ya terminó: las cuotas se muestran solo como referencia."
+            @(Model.Estado == "FINALIZADO" ? "El partido ya terminó: las cuotas se muestran solo como referencia."
               : "Este partido no admite apuestas.")
         </div>
     }

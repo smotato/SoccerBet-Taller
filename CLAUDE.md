@@ -76,7 +76,10 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
   (`POST /Partidos/DemoTerminar|DemoAnular/{id}`, antiforgery). SOLO existe en Development: el filtro `[SoloDevelopment]` responde 404 en
   cualquier otro entorno y la vista no pinta el recuadro. Terminar simula de golpe los minutos que faltan y liquida; Anular usa
   `anular_partido` + `sp_AnularApuestasPartido`. El simulador por si solo NUNCA anula partidos.
-- Pendiente: apuestas en vivo y cash out (6b);
+- Apuestas EN_VIVO (fase 6b, etapa 1) hechas: el cupon acepta partidos EN_VIVO si la cuota esta `disponible` (mercado abierto: sin pausa tras gol,
+  antes del minuto 85, no casi decidido); el servidor lo valida. El cupon NUNCA cambia una cuota por su cuenta: solo avisa. El intervalo de
+  refresco de las paginas es UNO solo (`Vivo:IntervaloActualizacionSegundos`, entregado en `<body data-vivo-intervalo>`).
+- Pendiente: cash out (6b, etapa 2);
   alineaciones y detalle de eventos (RF7); nube.
 - Entidades `Cliente` y `Saldo`: SOLO LECTURA desde C# (siempre `AsNoTracking()`, nunca `SaveChanges` sobre ellas).
   Solo `Login` se actualiza desde C# (intentos fallidos, bloqueo, ultimo_login).

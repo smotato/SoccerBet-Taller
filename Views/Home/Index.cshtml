@@ -8,7 +8,7 @@
 
 @{
     // Renderiza una fila de partido. Cuotas con punto decimal (cultura invariante).
-    // Las cuotas de los partidos PROGRAMADO se pueden pulsar (van al cupon); EN_VIVO queda deshabilitado en esta fase.
+    // Las cuotas se pueden pulsar (van al cupon) si estan disponibles: antes del partido y en vivo con el mercado abierto.
     // Los data-* solo sirven para pintar el cupon: el SERVIDOR relee la cuota, el partido y el mercado al confirmar.
     void Fila(PartidoFilaViewModel m)
     {
@@ -40,7 +40,7 @@
                 <div class="odds">
                     @foreach (var c in m.Cuotas)
                     {
-                        var apostable = m.Programado && c.Valor is not null && c.IdCuota is not null;
+                        var apostable = c.Disponible && c.Valor is not null && c.IdCuota is not null;   // PROGRAMADO o EN_VIVO con el mercado abierto
                         <button type="button" class="odd" disabled="@(!apostable)"
                                 data-cuota-id="@c.IdCuota"
                                 data-valor="@(c.Valor is decimal dv ? dv.ToString("0.####", CultureInfo.InvariantCulture) : "")"

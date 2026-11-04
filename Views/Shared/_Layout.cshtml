@@ -13,7 +13,8 @@
     <link rel="stylesheet" href="~/css/apuestas.css" asp-append-version="true" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body>
+@inject Microsoft.Extensions.Options.IOptions<CasaApuestas.Services.VivoOptions> Vivo
+<body data-vivo-intervalo="@Vivo.Value.IntervaloActualizacionSegundos">
     <header class="app-header">
         <div class="bar">
             <button class="burger" id="burger" aria-label="Mostrar u ocultar menú" aria-expanded="true"><span></span><span></span><span></span></button>

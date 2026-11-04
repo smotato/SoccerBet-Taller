@@ -7,7 +7,7 @@ namespace CasaApuestas.Models.ViewModels
     /// Una casilla de cuota. Valor es null cuando esa seleccion del 1X2 no esta disponible (se muestra un guion).
     /// IdCuota e IdMercado viajan en atributos data-* para el cupon; el servidor no los toma como verdad al confirmar.
     /// </summary>
-    public record CuotaViewModel(string Etiqueta, decimal? Valor, int? IdCuota = null, int? IdMercado = null);
+    public record CuotaViewModel(string Etiqueta, decimal? Valor, int? IdCuota = null, int? IdMercado = null, bool Disponible = false);
 
     /// <summary>Una fila de partido. Cuotas son SIEMPRE tres, en orden: local, empate, visitante (mercado 1X2).</summary>
     public record PartidoFilaViewModel(

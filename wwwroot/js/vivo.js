@@ -1,11 +1,13 @@
 // Actualizacion en vivo (RF13): cada ~5 s pide /Partidos/Estado y refresca minuto, marcador y cuotas de los partidos de la pagina.
-// Solo MUESTRA datos: no habilita cuotas (apostar en vivo llega en la fase 6b) ni toca el cupon. Las cuotas de un partido que no
-// esta PROGRAMADO siguen deshabilitadas; si el estado de un partido cambia (empezo, termino, se anulo) la pagina se recarga para
+// Solo MUESTRA datos: habilita o deshabilita cuotas segun lo que informa el servidor y avisa al cupon con el evento 'vivo:cuota' (el
+// cupon nunca cambia una cuota por su cuenta). Si el estado de un partido cambia (empezo, termino, se anulo) la pagina se recarga para
 // reacomodar las secciones (el cupon se conserva en sessionStorage).
 (function () {
     'use strict';
 
-    var INTERVALO_MS = 5000;
+    // El intervalo sale de appsettings.json (Vivo:IntervaloActualizacionSegundos) via <body data-vivo-intervalo>: no hay otro numero aqui.
+    var INTERVALO_MS = (parseInt(document.body.dataset.vivoIntervalo, 10) || 0) * 1000;
+    if (INTERVALO_MS <= 0) return;
     var filas = Array.prototype.slice.call(document.querySelectorAll('[data-vivo-id]'));
     if (!filas.length) return;
 
@@ -23,8 +25,10 @@
         boton.classList.remove('up', 'dn');
         if (isFinite(anterior) && cuota.cuota > anterior + 0.004) boton.classList.add('up');
         else if (isFinite(anterior) && cuota.cuota < anterior - 0.004) boton.classList.add('dn');
-        // Solo un partido PROGRAMADO con cuota disponible se puede pulsar; en vivo nunca (fase 6b).
-        boton.disabled = !(estado === 'PROGRAMADO' && cuota.disponible);
+        // Se puede pulsar si el partido esta PROGRAMADO o EN_VIVO y la cuota esta disponible (mercado abierto). El servidor lo
+        // vuelve a validar al confirmar; esto solo refleja lo que muestra la pagina.
+        boton.disabled = !((estado === 'PROGRAMADO' || estado === 'EN_VIVO') && cuota.disponible);
+        document.dispatchEvent(new CustomEvent('vivo:cuota', { detail: { idCuota: cuota.idCuota, cuota: cuota.cuota, disponible: cuota.disponible } }));
     }
 
     function pintar(fila, p) {

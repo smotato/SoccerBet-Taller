@@ -22,7 +22,8 @@ namespace CasaApuestas.Services
     /// Orden de las comprobaciones:
     ///   1. Idempotencia: si la clave YA creo una apuesta de ESTE cliente, se devuelve esa apuesta y no se valida ni cobra nada.
     ///   2. Forma: 1..N selecciones, sin ids repetidos, importe entero entre minimo y maximo.
-    ///   3. Cada cuota: existe, partido PROGRAMADO, mercado activo, cuota disponible, una por mercado en cada partido.
+    ///   3. Cada cuota: existe, partido PROGRAMADO o EN_VIVO, mercado activo, cuota disponible (en vivo, 'disponible' = mercado abierto:
+    ///      no hay pausa tras un gol, no se llego al minuto de cierre y el resultado no esta casi decidido), una por mercado en cada partido.
     ///   4. Cuota cambiada: si alguna difiere de la que vio el cliente, se devuelven las nuevas y NO se apuesta.
     ///   5. Saldo (comodidad: da un mensaje claro). La autoridad es sp_RegistrarApuesta, que vuelve a comprobarlo
     ///      dentro de su transaccion.
@@ -98,12 +99,14 @@ namespace CasaApuestas.Services
 
                 if (!ctx.Partidos.TryGetValue(c.IdPartido, out var partido))
                     errores.Add(new(c.IdCuota, c.IdPartido, c.IdMercado, $"{quien}: el partido ya no existe."));
-                else if (partido.Estado != "PROGRAMADO")
+                else if (partido.Estado is not ("PROGRAMADO" or "EN_VIVO"))
                     errores.Add(new(c.IdCuota, c.IdPartido, c.IdMercado, $"{quien}: {EstadoLegible(partido.Estado)}, ya no admite apuestas."));
                 else if (!ctx.Mercados.TryGetValue(c.IdMercado, out var mercado) || !mercado.Activo)
                     errores.Add(new(c.IdCuota, c.IdPartido, c.IdMercado, $"{quien}: el mercado está cerrado."));
                 else if (!c.Disponible)
-                    errores.Add(new(c.IdCuota, c.IdPartido, c.IdMercado, $"{quien}: la cuota ya no está disponible."));
+                    errores.Add(new(c.IdCuota, c.IdPartido, c.IdMercado, partido.Estado == "EN_VIVO"
+                        ? $"{quien}: el mercado está cerrado en este momento (gol reciente, minuto 85 o resultado casi decidido). Inténtalo en unos segundos."
+                        : $"{quien}: la cuota ya no está disponible."));
                 else if (vistos.TryGetValue((c.IdPartido, c.IdMercado), out var otra))
                     errores.Add(new(c.IdCuota, c.IdPartido, c.IdMercado,
                         $"{quien}: solo se permite una selección por mercado en cada partido y ya elegiste «{otra}»."));
@@ -201,7 +204,6 @@ namespace CasaApuestas.Services
 
         private static string EstadoLegible(string estado) => estado switch
         {
-            "EN_VIVO" => "el partido ya empezó",
             "FINALIZADO" => "el partido ya terminó",
             "SUSPENDIDO" => "el partido fue suspendido",
             _ => "el partido no está disponible"

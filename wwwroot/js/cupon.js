@@ -129,18 +129,17 @@
             b.setAttribute('aria-pressed', sel ? 'true' : 'false');
         });
     }
+    // Al abrir una pagina, compara las cuotas del cupon con las que muestra. NO las cambia: solo avisa (el cliente decide). Si
+    // confirma con la cuota vieja, el servidor responde con la vigente y es el cliente quien la acepta.
     function sincronizarConPagina() {
         var cambios = [];
         estado.picks.forEach(function (p) {
             var b = document.querySelector('.odd[data-cuota-id="' + p.idCuota + '"]');
             if (!b || b.disabled) return;
             var v = parseFloat(b.dataset.valor);
-            if (isFinite(v) && Math.abs(v - p.cuota) > 0.00005) {
-                cambios.push(p.seleccion + ' (' + p.partido + '): ' + cuotaTxt(p.cuota) + ' → ' + cuotaTxt(v));
-                p.cuota = v;
-            }
+            if (isFinite(v) && Math.abs(v - p.cuota) > 0.00005) cambios.push(p.seleccion + ' (' + p.partido + '): ' + cuotaTxt(p.cuota) + ' → ' + cuotaTxt(v));
         });
-        if (cambios.length) { ui.avisos.push('Algunas cuotas de tu cupón se actualizaron con las de esta página: ' + cambios.join('; ') + '.'); guardar(); }
+        if (cambios.length) ui.avisos.push('Algunas cuotas de tu cupón son distintas de las que muestra esta página: ' + cambios.join('; ') + '. Tu cupón conserva las anteriores; si confirmas, te mostraremos las vigentes para que decidas.');
     }
 
     // ---- Dibujo del cupon --------------------------------------------------------------------------------------
@@ -377,6 +376,34 @@
         }
         guardar(); render(); marcarCuotas();
     }
+
+    // ---- Cambios de cuota en vivo (evento de vivo.js) ------------------------------------------------------------
+    // El cupon NUNCA acepta un cambio por su cuenta: la cuota del cupon no se toca. Solo se AVISA; al confirmar, el servidor compara
+    // con la cuota vigente y, si difiere, devuelve la nueva para que el cliente decida (flujo "Aceptar nuevas cuotas y apostar").
+    var avisosVivo = {}, pendienteRender = false;
+    function redibujarSiPuede() {
+        var foco = document.activeElement;
+        if (foco && foco.id === 'cuponImporte') { pendienteRender = true; return; }   // no quitar el foco mientras escribe el importe
+        pendienteRender = false; render(); marcarCuotas();
+    }
+    raiz.addEventListener('focusout', function () { if (pendienteRender) setTimeout(redibujarSiPuede, 0); });
+    document.addEventListener('vivo:cuota', function (e) {
+        var d = e.detail, p = estado.picks.find(function (x) { return x.idCuota === d.idCuota; });
+        if (!p || ui.resultado) return;
+        var cambio = false;
+        if (Math.abs(d.cuota - p.cuota) > 0.004) {
+            var m = avisosVivo[d.idCuota];
+            if (!m || m !== d.cuota) {
+                avisosVivo[d.idCuota] = d.cuota;
+                ui.avisos = ui.avisos.filter(function (a) { return a.indexOf('«' + p.seleccion + '»') < 0; });
+                ui.avisos.push('La cuota de «' + p.seleccion + '» cambió de ' + cuotaTxt(p.cuota) + ' a ' + cuotaTxt(d.cuota) + '. Tu cupón conserva la anterior; si confirmas, te mostraremos la nueva para que decidas.');
+                cambio = true;
+            }
+        }
+        if (!d.disponible && !ui.errores[d.idCuota]) { ui.errores[d.idCuota] = 'Este mercado está cerrado en este momento (gol reciente o minuto 85).'; cambio = true; }
+        if (d.disponible && ui.errores[d.idCuota] && ui.errores[d.idCuota].indexOf('cerrado en este momento') >= 0) { delete ui.errores[d.idCuota]; cambio = true; }
+        if (cambio) redibujarSiPuede();
+    });
 
     // ---- Arranque ----------------------------------------------------------------------------------------------
     if (estado.picks.length) sincronizarConPagina();
