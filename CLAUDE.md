@@ -84,8 +84,12 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
   ANULADA no cuenta, PERDIDA = sin cash out, tope = ganancia potencial, pesos enteros; bloqueado si hay un mercado cerrado o el valor < $ 1).
   `POST /Apuestas/ConfirmarCashOut` recalcula: si el valor cambio devuelve el nuevo SIN cobrar; luego `sp_CashOut` (idempotente por estado).
   `cashout.js` refresca los valores con el mismo `Vivo:IntervaloActualizacionSegundos` del home. Una apuesta CASHOUT no se liquida despues.
-- Pendiente: nada de la fase 6; quedan retiros reales/nube/RF15 segun specs.md;
-  alineaciones y detalle de eventos (RF7); nube.
+- Detalle con eventos y alineaciones (RF7, fase 7) hecho: el simulador crea la alineacion INICIAL (4-4-2, solo 11 titulares; `Services/Simulador/GeneradorAlineaciones`,
+  `Data/Mongo/AlineacionRepository`, upsert `$setOnInsert`) al iniciar/retomar un partido y hace UN relleno para EN_VIVO/FINALIZADO sin alineacion; goles y tarjetas
+  salen solo de los titulares. `/Partidos/Detalle/{id}` muestra cronologia (mas reciente arriba) y alineaciones (`EventosPartidoService`, nombres SIEMPRE de MySQL,
+  nunca del `descripcion` de Mongo); `GET /Partidos/Eventos/{id}` entrega el fragmento que `vivo.js` refresca solo si el partido esta EN_VIVO. Si Mongo cae, aviso
+  amable y las cuotas siguen. PROGRAMADO: "Aun no hay eventos" (+ alineacion si existe); SUSPENDIDO: "Partido anulado"; no se inventan eventos del pasado.
+- Pendiente: retiros reales/nube/RF15 segun specs.md; nube.
 - Entidades `Cliente` y `Saldo`: SOLO LECTURA desde C# (siempre `AsNoTracking()`, nunca `SaveChanges` sobre ellas).
   Solo `Login` se actualiza desde C# (intentos fallidos, bloqueo, ultimo_login).
 - Mockups de referencia (HTML): `docs/mockups/login.html`, `docs/mockups/home.html`, `docs/mockups/equipos.html` y

@@ -116,5 +116,13 @@ else
         </section>
     }
 
+    @* Eventos y alineaciones (RF7, MongoDB). El contenedor lleva la URL del fragmento solo si el partido esta EN_VIVO: vivo.js lo refresca. *@
+    @if (Model.Eventos is not null)
+    {
+        <div id="eventosPartido" data-url="@(Model.EnVivo ? Url.Action("Eventos", "Partidos", new { id = Model.IdPartido }) : "")">
+            <partial name="_Eventos" model="Model.Eventos" />
+        </div>
+    }
+
     <p class="fine">En el cupón solo cabe una selección por mercado en cada partido. Puedes combinar mercados distintos del mismo partido (máx. 3).</p>
 }

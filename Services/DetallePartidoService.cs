@@ -68,6 +68,8 @@ namespace CasaApuestas.Services
                 Minuto = partido.Minuto,
                 Competicion = liga is null ? "Liga" : $"{liga.Pais} / {liga.Nombre}",
                 Jornada = calendario?.NumeroJornada,
+                IdEquipoLocal = partido.IdEquipoLocal,
+                IdEquipoVisitante = partido.IdEquipoVisitante,
                 Local = local,
                 Visitante = visitante,
                 Mercados = vmMercados

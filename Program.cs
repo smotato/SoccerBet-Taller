@@ -110,6 +110,7 @@ builder.Services.AddScoped<CasaApuestas.Services.IEquiposCache, CasaApuestas.Ser
 builder.Services.AddScoped<CasaApuestas.Services.IPartidoService, CasaApuestas.Services.PartidoService>();
 builder.Services.AddScoped<CasaApuestas.Services.IPosicionesService, CasaApuestas.Services.PosicionesService>();
 builder.Services.AddScoped<CasaApuestas.Services.IDetallePartidoService, CasaApuestas.Services.DetallePartidoService>();
+builder.Services.AddScoped<CasaApuestas.Services.IEventosPartidoService, CasaApuestas.Services.EventosPartidoService>();
 builder.Services.AddScoped<CasaApuestas.Services.IEstadoVivoService, CasaApuestas.Services.EstadoVivoService>();
 
 // Apuestas (RF9): limites desde appsettings.json ("Apuestas"); si faltan o son invalidos la app no arranca.

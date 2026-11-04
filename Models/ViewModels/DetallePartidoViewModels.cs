@@ -27,6 +27,11 @@ namespace CasaApuestas.Models.ViewModels
         public IReadOnlyList<MercadoViewModel> Mercados { get; init; } = Array.Empty<MercadoViewModel>();
         public string? Error { get; init; }
 
+        /// <summary>Eventos y alineaciones (MongoDB). Lo llena el controlador; null si no se pidieron.</summary>
+        public EventosPartidoViewModel? Eventos { get; set; }
+        public int IdEquipoLocal { get; init; }
+        public int IdEquipoVisitante { get; init; }
+
         public bool EnVivo => Estado == "EN_VIVO";
         public bool Programado => Estado == "PROGRAMADO";
         public bool MostrarMarcador => Estado is "EN_VIVO" or "FINALIZADO";

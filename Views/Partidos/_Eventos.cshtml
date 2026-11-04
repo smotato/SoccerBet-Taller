@@ -1,0 +1,58 @@
+@model CasaApuestas.Models.ViewModels.EventosPartidoViewModel
+@* Eventos y alineaciones (RF7). Todo con @ (codificado): ningun texto viene con Html.Raw. Se usa tambien como fragmento de refresco. *@
+
+@if (Model.MongoNoDisponible)
+{
+    <div class="ap-msg warn" role="status">
+        <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+        No pudimos cargar los eventos y las alineaciones en este momento. Las cuotas siguen disponibles.
+    </div>
+}
+else if (Model.Estado == "SUSPENDIDO")
+{
+    <section class="ap-mk">
+        <h3>Eventos</h3>
+        <div class="ap-vacio">@Model.MensajeEstado</div>
+    </section>
+}
+else
+{
+    <section class="ap-mk">
+        <h3>Eventos</h3>
+        @if (Model.Eventos.Count == 0)
+        {
+            <div class="ap-vacio">@Model.MensajeEstado</div>
+        }
+        else
+        {
+            <ul class="ap-ev">
+                @foreach (var e in Model.Eventos)
+                {
+                    var icono = e.Tipo switch { "GOL" => "bi-bullseye", "AMARILLA" => "bi-square-fill ev-am", "ROJA" => "bi-square-fill ev-ro", "INICIO" => "bi-play-circle", _ => "bi-flag" };
+                    <li><b>@e.Minuto</b><i class="bi @icono" aria-hidden="true"></i><span>@e.Texto</span></li>
+                }
+            </ul>
+        }
+    </section>
+
+    @if (Model.Alineaciones.Count > 0)
+    {
+        <section class="ap-mk">
+            <h3>Alineaciones</h3>
+            <div class="ap-lineups">
+                @foreach (var a in Model.Alineaciones)
+                {
+                    <div>
+                        <h4>@a.Equipo@if (a.Formacion is not null) { <small>@a.Formacion</small> }</h4>
+                        <ol>
+                            @foreach (var j in a.Titulares)
+                            {
+                                <li><b>@(j.Numero?.ToString() ?? "–")</b><span>@j.Nombre</span>@if (!string.IsNullOrEmpty(j.Posicion)) { <small>@j.Posicion</small> }</li>
+                            }
+                        </ol>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+}

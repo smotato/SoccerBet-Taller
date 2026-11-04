@@ -22,13 +22,15 @@ namespace CasaApuestas.Controllers
 
         private readonly IDetallePartidoService _servicio;
         private readonly IEstadoVivoService _estadoVivo;
+        private readonly IEventosPartidoService _eventos;
         private readonly SimuladorPartidos _simulador;
         private readonly ILogger<PartidosController> _log;
 
-        public PartidosController(IDetallePartidoService servicio, IEstadoVivoService estadoVivo, SimuladorPartidos simulador, ILogger<PartidosController> log)
+        public PartidosController(IDetallePartidoService servicio, IEstadoVivoService estadoVivo, IEventosPartidoService eventos, SimuladorPartidos simulador, ILogger<PartidosController> log)
         {
             _servicio = servicio;
             _estadoVivo = estadoVivo;
+            _eventos = eventos;
             _simulador = simulador;
             _log = log;
         }
@@ -74,6 +76,24 @@ namespace CasaApuestas.Controllers
             }
         }
 
+        // GET /Partidos/Eventos/12   (fragmento HTML; publico; solo lectura)
+        // Lo pide vivo.js cada intervalo mientras el partido esta EN_VIVO para refrescar la cronologia sin recargar la pagina.
+        [HttpGet]
+        public async Task<IActionResult> Eventos(int id, CancellationToken ct)
+        {
+            try
+            {
+                var modelo = await _eventos.ObtenerPorIdAsync(id, ct);
+                if (modelo is null) return NotFound();
+                return PartialView("_Eventos", modelo);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _log.LogError(ex, "No se pudo leer el fragmento de eventos del partido {IdPartido}.", id);
+                return StatusCode(503);
+            }
+        }
+
         // GET /Partidos/Detalle/12
         public async Task<IActionResult> Detalle(int id, CancellationToken ct)
         {
@@ -81,6 +101,9 @@ namespace CasaApuestas.Controllers
             {
                 var modelo = await _servicio.ObtenerAsync(id, ct);
                 if (modelo is null) return NotFound();
+                // Eventos y alineaciones (MongoDB): el servicio no lanza por un fallo de Mongo, asi que las cuotas siempre se ven.
+                modelo.Eventos = await _eventos.ObtenerAsync(modelo.IdPartido, modelo.Estado, modelo.IdEquipoLocal, modelo.IdEquipoVisitante,
+                    modelo.Local.Nombre, modelo.Visitante.Nombre, ct);
                 return View(modelo);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)

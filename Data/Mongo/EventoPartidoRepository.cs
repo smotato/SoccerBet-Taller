@@ -17,6 +17,9 @@ namespace CasaApuestas.Data.Mongo
             _eventos = cliente.GetDatabase(opciones.Value.Database).GetCollection<EventoPartidoDocumento>(opciones.Value.ColeccionEventos);
         }
 
+        public async Task<IReadOnlyList<EventoPartidoDocumento>> ListarPorPartidoAsync(int idPartido, CancellationToken ct = default) =>
+            await _eventos.Find(e => e.IdPartido == idPartido).ToListAsync(ct);
+
         public async Task<int> GuardarAsync(IReadOnlyCollection<EventoPartidoDocumento> eventos, CancellationToken ct = default)
         {
             if (eventos.Count == 0) return 0;

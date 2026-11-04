@@ -9,5 +9,8 @@ namespace CasaApuestas.Data.Mongo
         /// duplica nada. Devuelve cuantos eventos nuevos se insertaron.
         /// </summary>
         Task<int> GuardarAsync(IReadOnlyCollection<EventoPartidoDocumento> eventos, CancellationToken ct = default);
+
+        /// <summary>Los eventos de un partido (solo lectura), sin orden garantizado: el servicio los ordena.</summary>
+        Task<IReadOnlyList<EventoPartidoDocumento>> ListarPorPartidoAsync(int idPartido, CancellationToken ct = default);
     }
 }

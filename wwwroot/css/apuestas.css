@@ -147,3 +147,23 @@
 .ap-co .ap-co-acc{display:flex;gap:6px}
 .ap-co .ap-co-msg{flex-basis:100%}
 .ap-co .ap-co-btn:disabled{background:#B9B2BE;cursor:not-allowed}
+
+/* Eventos y alineaciones del detalle (RF7) */
+.ap-ev{list-style:none;margin:0;padding:0}
+.ap-ev li{display:flex;gap:10px;align-items:center;padding:9px 16px;border-top:1px solid var(--line);font-size:14px}
+.ap-ev li:first-child{border-top:0}
+.ap-ev b{min-width:44px;color:#2F6A8F}
+.ap-ev i{font-size:15px}
+.ap-ev .ev-am{color:#C9A000}
+.ap-ev .ev-ro{color:#C62828}
+.ap-vacio{padding:14px 16px;color:#6b6272;font-size:14px}
+.ap-lineups{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.ap-lineups>div{padding:10px 16px}
+.ap-lineups>div+div{border-left:1px solid var(--line)}
+.ap-lineups h4{margin:0 0 6px;font-size:14px}
+.ap-lineups h4 small{color:#6b6272;font-weight:400;margin-left:6px}
+.ap-lineups ol{list-style:none;margin:0;padding:0;font-size:13px}
+.ap-lineups li{display:flex;gap:8px;padding:3px 0}
+.ap-lineups li b{min-width:22px;text-align:right;color:#2F6A8F}
+.ap-lineups li small{margin-left:auto;color:#6b6272}
+@media (max-width:640px){.ap-lineups{grid-template-columns:1fr}.ap-lineups>div+div{border-left:0;border-top:1px solid var(--line)}}

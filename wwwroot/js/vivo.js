@@ -61,6 +61,18 @@
         } catch (e) { /* sin red: se reintenta */ }
     }
 
-    setInterval(actualizar, INTERVALO_MS);
+    // Cronologia y alineaciones del detalle (RF7): solo si el partido esta EN_VIVO (la vista pone data-url unicamente entonces).
+    // El servidor devuelve HTML ya codificado; se reemplaza el contenido del contenedor tal cual.
+    var contenedorEventos = document.getElementById('eventosPartido');
+    async function actualizarEventos() {
+        if (!contenedorEventos || !contenedorEventos.dataset.url || document.hidden || recargando) return;
+        try {
+            var resp = await fetch(contenedorEventos.dataset.url, { headers: { 'Accept': 'text/html' }, cache: 'no-store' });
+            if (!resp.ok) return;                       // error momentaneo: se conserva lo que ya se ve
+            contenedorEventos.innerHTML = await resp.text();
+        } catch (e) { /* sin red: se reintenta */ }
+    }
+
+    setInterval(function () { actualizar(); actualizarEventos(); }, INTERVALO_MS);
     document.addEventListener('visibilitychange', function () { if (!document.hidden) actualizar(); });
 })();
