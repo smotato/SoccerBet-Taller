@@ -60,6 +60,9 @@ namespace CasaApuestas.Services.Simulador
             public HashSet<int> ConAmarilla { get; } = new();
             public HashSet<int> Expulsados { get; } = new();
             public bool HuboRojaDirecta { get; set; }
+            public IReadOnlyList<CuotaPartidoSim> Cuotas { get; set; } = Array.Empty<CuotaPartidoSim>();
+            public long? InicioPausa { get; set; }          // marca de tiempo del ultimo gol (pausa de cuotas)
+            public string? UltimaFirmaCuotas { get; set; }  // para no reescribir las cuotas si nada cambio
         }
 
         public SimuladorPartidos(ISimuladorRepository repo, IEventoPartidoRepository eventos, IJugadoresCache jugadores,
@@ -192,7 +195,8 @@ namespace CasaApuestas.Services.Simulador
                 Minuto = minuto,
                 GolesLocal = golesLocal,
                 GolesVisitante = golesVisitante,
-                UltimoTick = _reloj.GetTimestamp()
+                UltimoTick = _reloj.GetTimestamp(),
+                Cuotas = await _repo.ObtenerCuotasBaseAsync(p.IdPartido, ct)
             };
         }
 
@@ -244,7 +248,11 @@ namespace CasaApuestas.Services.Simulador
 
             p.FraccionMinuto += segundos / SegundosPorMinuto;
             var pasos = (int)Math.Floor(p.FraccionMinuto);
-            if (pasos <= 0) return;
+            if (pasos <= 0)
+            {
+                await ActualizarCuotasAsync(p, ct);       // sin minutos nuevos: solo puede haber terminado la pausa tras un gol
+                return;
+            }
             p.FraccionMinuto -= pasos;
 
             var nuevos = new List<EventoPartidoDocumento>();
@@ -263,7 +271,33 @@ namespace CasaApuestas.Services.Simulador
             }
             Encolar(nuevos);
 
-            if (p.Minuto >= _opc.MinutosPartido) await FinalizarAsync(p, ct);
+            if (p.Minuto >= _opc.MinutosPartido)
+            {
+                await FinalizarAsync(p, ct);       // registrar_resultado_partido cierra todas las cuotas
+                return;
+            }
+            await ActualizarCuotasAsync(p, ct);
+        }
+
+        // ---- Cuotas en vivo (E3) ---------------------------------------------------------------------------------------
+
+        private bool EnPausa(PartidoVivo p) =>
+            p.InicioPausa is long inicio && _reloj.GetElapsedTime(inicio).TotalSeconds < _opc.PausaTrasGolSegundos;
+
+        /// <summary>Recalcula las cuotas del partido y las guarda en PostgreSQL solo si algo cambio (minuto, marcador o pausa).</summary>
+        private async Task ActualizarCuotasAsync(PartidoVivo p, CancellationToken ct)
+        {
+            if (p.Cuotas.Count == 0) return;
+
+            var pausa = EnPausa(p);
+            var firma = $"{p.Minuto}|{p.GolesLocal}|{p.GolesVisitante}|{pausa}";
+            if (firma == p.UltimaFirmaCuotas) return;
+
+            var calculadas = CalculadoraCuotasVivo.Calcular(p.Cuotas, p.EsperadosLocal, p.EsperadosVisitante, p.Minuto,
+                p.GolesLocal, p.GolesVisitante, _opc.MinutosPartido, _opc.MinutoCierre, pausa, _opc.CuotaMinima, _opc.ProbCasiSegura);
+
+            await _repo.ActualizarCuotasVivoAsync(p.Id, calculadas.Select(c => (c.IdCuota, c.Cuota, c.Disponible)).ToList(), ct);
+            p.UltimaFirmaCuotas = firma;
         }
 
         private void GenerarEventosDelMinuto(PartidoVivo p, List<EventoPartidoDocumento> eventos)
@@ -272,12 +306,14 @@ namespace CasaApuestas.Services.Simulador
             if (ModeloGoles.OcurreEnUnMinuto(p.EsperadosLocal, _opc.MinutosPartido, p.Rng))
             {
                 p.GolesLocal++;
+                p.InicioPausa = _reloj.GetTimestamp();
                 eventos.Add(EventoDeGol(p, p.IdLocal, p.JugadoresLocal, "local"));
                 _log.LogInformation("GOL del local en el partido {IdPartido}, minuto {Minuto}: {L}-{V}", p.Id, p.Minuto, p.GolesLocal, p.GolesVisitante);
             }
             if (ModeloGoles.OcurreEnUnMinuto(p.EsperadosVisitante, _opc.MinutosPartido, p.Rng))
             {
                 p.GolesVisitante++;
+                p.InicioPausa = _reloj.GetTimestamp();
                 eventos.Add(EventoDeGol(p, p.IdVisitante, p.JugadoresVisitante, "visitante"));
                 _log.LogInformation("GOL del visitante en el partido {IdPartido}, minuto {Minuto}: {L}-{V}", p.Id, p.Minuto, p.GolesLocal, p.GolesVisitante);
             }

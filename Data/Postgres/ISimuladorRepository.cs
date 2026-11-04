@@ -10,6 +10,9 @@ namespace CasaApuestas.Data.Postgres
     /// <summary>Cuotas 1X2 INICIALES de un partido (base para repartir los goles esperados).</summary>
     public record Cuotas1X2(decimal? Local, decimal? Empate, decimal? Visitante);
 
+    /// <summary>Una cuota de un partido con su valor INICIAL (la base para recalcular las cuotas en vivo).</summary>
+    public record CuotaPartidoSim(int IdCuota, string CodigoSeleccion, decimal CuotaInicial);
+
     /// <summary>Ultima jornada creada (liga, temporada y numero): la siguiente continua desde aqui.</summary>
     public record UltimaJornada(int IdLiga, string Temporada, int Numero);
 
@@ -50,6 +53,17 @@ namespace CasaApuestas.Data.Postgres
         /// estaba finalizado/anulado (la funcion lo rechaza) y entonces no hay nada que hacer.
         /// </summary>
         Task<IReadOnlyList<ResultadoCuotaSim>?> FinalizarAsync(int idPartido, int golesLocal, int golesVisitante, CancellationToken ct = default);
+
+        // ---- E3: cuotas en vivo ----
+
+        /// <summary>Las cuotas del partido con su cuota inicial (cuota_inicial, o la cuota actual si fuera NULL).</summary>
+        Task<IReadOnlyList<CuotaPartidoSim>> ObtenerCuotasBaseAsync(int idPartido, CancellationToken ct = default);
+
+        /// <summary>
+        /// Guarda las cuotas recalculadas (valor y disponibilidad) en UNA sentencia, solo si el partido sigue EN_VIVO: un
+        /// partido ya finalizado o anulado nunca vuelve a abrir sus cuotas. Devuelve cuantas cuotas se actualizaron.
+        /// </summary>
+        Task<int> ActualizarCuotasVivoAsync(int idPartido, IReadOnlyCollection<(int IdCuota, decimal Cuota, bool Disponible)> cuotas, CancellationToken ct = default);
 
         // ---- E2: liquidacion y nueva jornada ----
 

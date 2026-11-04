@@ -64,6 +64,7 @@ namespace CasaApuestas.Services
                 IdPartido = partido.IdPartido,
                 Estado = partido.Estado,
                 Hora = FechaColombia.Formatear(partido.FechaHora, FechaColombia.Ahora(_reloj)),
+                Minuto = partido.Minuto,
                 Competicion = liga is null ? "Liga" : $"{liga.Pais} / {liga.Nombre}",
                 Jornada = calendario?.NumeroJornada,
                 Local = local,

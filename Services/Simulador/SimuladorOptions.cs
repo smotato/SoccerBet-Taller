@@ -69,12 +69,28 @@ namespace CasaApuestas.Services.Simulador
         /// <summary>Margen de la casa en las cuotas que se generan (0,08 = 8 %). Tambien lo usaran las cuotas en vivo.</summary>
         public double MargenCasa { get; set; }
 
+        // ---- E3: cuotas en vivo ----
+
+        /// <summary>Desde este minuto simulado (85) todas las cuotas se cierran hasta el final del partido.</summary>
+        public int MinutoCierre { get; set; }
+
+        /// <summary>Segundos REALES que las cuotas quedan suspendidas despues de cada gol.</summary>
+        public int PausaTrasGolSegundos { get; set; }
+
+        /// <summary>Cuota minima que puede tener una cuota en vivo (1,01).</summary>
+        public decimal CuotaMinima { get; set; }
+
+        /// <summary>Si la probabilidad de un resultado llega a este valor (o a su complemento), su cuota se marca no disponible.</summary>
+        public double ProbCasiSegura { get; set; }
+
         public static bool EsValida(SimuladorOptions o) =>
             o.IntervaloCicloSegundos > 0 && o.DuracionRealPartidoSegundos > 0 && o.MinutosPartido > 0
             && o.MaxPartidosEnVivo > 0 && o.EscalonInicioSegundos >= 0 && o.GolesEsperadosPorPartido > 0
             && o.SesgoCuotas is >= 0 and <= 1 && o.TarjetasAmarillasEsperadas >= 0
             && o.ProbTarjetaRojaPorPartido is >= 0 and <= 1 && o.MinutoSinDato >= 0 && o.MinutoSinDato < o.MinutosPartido
             && o.IntervaloReconciliacionSegundos > 0 && o.MinutosHastaPrimerPartido >= 0 && o.SeparacionPartidosMinutos > 0
-            && o.MargenCasa is >= 0 and < 0.5;
+            && o.MargenCasa is >= 0 and < 0.5
+            && o.MinutoCierre > 0 && o.MinutoCierre <= o.MinutosPartido && o.PausaTrasGolSegundos >= 0
+            && o.CuotaMinima > 1 && o.ProbCasiSegura is > 0.5 and < 1;
     }
 }

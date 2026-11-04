@@ -50,6 +50,7 @@ namespace CasaApuestas.Data.Postgres
                 e.Property(x => x.GolesVisitante).HasColumnName("goles_visitante");
                 e.Property(x => x.Estado).HasColumnName("estado");
                 e.Property(x => x.FechaFinalizacion).HasColumnName("fecha_finalizacion");
+                e.Property(x => x.Minuto).HasColumnName("minuto");
             });
 
             mb.Entity<Mercado>(e =>

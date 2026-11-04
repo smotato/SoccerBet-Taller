@@ -38,7 +38,7 @@ namespace CasaApuestas.Services
             var partidos = await _partidos.ListarPartidosActivosAsync(ct);
             if (partidos.Count == 0) return new HomeViewModel();
 
-            var cuotas = await _partidos.ListarCuotasDisponiblesAsync(partidos.Select(p => p.IdPartido).ToList(), ct);
+            var cuotas = await _partidos.ListarCuotasDePartidosAsync(partidos.Select(p => p.IdPartido).ToList(), ct);
             var calendarios = (await _partidos.ListarCalendariosAsync(partidos.Select(p => p.IdCalendario).Distinct().ToList(), ct))
                 .ToDictionary(c => c.IdCalendario);
 
@@ -59,7 +59,7 @@ namespace CasaApuestas.Services
             {
                 var idLiga = calendarios.TryGetValue(p.IdCalendario, out var cal) ? cal.IdLiga : 0;
                 ligas.TryGetValue(idLiga, out var liga);
-                return (Titulo: TituloLiga(liga), Fila: ArmarFila(p, cuotasPorPartido[p.IdPartido].ToList(), equipos, mercados, ahora), EnVivo: p.Estado == "EN_VIVO");
+                return (Titulo: TituloLiga(liga), Fila: ArmarFila(p, cuotasPorPartido[p.IdPartido].Where(c => p.Estado == "EN_VIVO" || c.Disponible).ToList(), equipos, mercados, ahora), EnVivo: p.Estado == "EN_VIVO");
             }).ToList();
 
             return new HomeViewModel
@@ -99,7 +99,7 @@ namespace CasaApuestas.Services
             var mercados1x2 = cuota1x2.Select(c => c.IdMercado).ToHashSet();
             var extra = cuotas.Select(c => c.IdMercado).Where(m => !mercados1x2.Contains(m)).Distinct().Count();
 
-            return new PartidoFilaViewModel(p.IdPartido, enVivo, FechaColombia.Formatear(p.FechaHora, ahora), local, visitante, casillas, extra, nombreMercado);
+            return new PartidoFilaViewModel(p.IdPartido, enVivo, FechaColombia.Formatear(p.FechaHora, ahora), local, visitante, casillas, extra, nombreMercado, p.Minuto);
         }
 
         private static EquipoMiniViewModel Mini(IReadOnlyDictionary<int, Equipo> equipos, int idEquipo, int? goles)

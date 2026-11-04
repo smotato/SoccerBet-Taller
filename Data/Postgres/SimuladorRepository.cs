@@ -131,6 +131,33 @@ namespace CasaApuestas.Data.Postgres
             return resultado;
         }
 
+        public async Task<IReadOnlyList<CuotaPartidoSim>> ObtenerCuotasBaseAsync(int idPartido, CancellationToken ct = default)
+        {
+            var lista = new List<CuotaPartidoSim>();
+            await using var cmd = _fuente.CreateCommand(
+                "SELECT id_cuota, codigo_seleccion, COALESCE(cuota_inicial, cuota) FROM cuota WHERE id_partido = @id ORDER BY id_cuota");
+            cmd.Parameters.AddWithValue("id", idPartido);
+            await using var r = await cmd.ExecuteReaderAsync(ct);
+            while (await r.ReadAsync(ct)) lista.Add(new CuotaPartidoSim(r.GetInt32(0), r.GetString(1), r.GetDecimal(2)));
+            return lista;
+        }
+
+        public async Task<int> ActualizarCuotasVivoAsync(int idPartido, IReadOnlyCollection<(int IdCuota, decimal Cuota, bool Disponible)> cuotas, CancellationToken ct = default)
+        {
+            if (cuotas.Count == 0) return 0;
+            // Un solo UPDATE ... FROM unnest(...). El EXISTS sobre partido es la guarda de idempotencia: solo si sigue EN_VIVO.
+            await using var cmd = _fuente.CreateCommand(
+                @"UPDATE cuota c SET cuota = v.cuota, disponible = v.disponible
+                  FROM unnest(@ids, @cuotas, @disp) AS v(id, cuota, disponible)
+                  WHERE c.id_cuota = v.id AND c.id_partido = @partido
+                    AND EXISTS (SELECT 1 FROM partido p WHERE p.id_partido = @partido AND p.estado = 'EN_VIVO')");
+            cmd.Parameters.AddWithValue("partido", idPartido);
+            cmd.Parameters.AddWithValue("ids", cuotas.Select(c => c.IdCuota).ToArray());
+            cmd.Parameters.AddWithValue("cuotas", cuotas.Select(c => c.Cuota).ToArray());
+            cmd.Parameters.AddWithValue("disp", cuotas.Select(c => c.Disponible).ToArray());
+            return await cmd.ExecuteNonQueryAsync(ct);
+        }
+
         public async Task<IReadOnlyList<ResultadoCuotaSim>> ObtenerResultadosFinalizadosAsync(IReadOnlyCollection<int> idsCuota, CancellationToken ct = default)
         {
             var lista = new List<ResultadoCuotaSim>();

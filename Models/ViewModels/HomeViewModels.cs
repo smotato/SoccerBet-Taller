@@ -18,7 +18,8 @@ namespace CasaApuestas.Models.ViewModels
         EquipoMiniViewModel Visitante,
         IReadOnlyList<CuotaViewModel> Cuotas,
         int MercadosExtra,
-        string MercadoNombre)
+        string MercadoNombre,
+        int? Minuto = null)
     {
         /// <summary>Solo los partidos PROGRAMADO admiten apuestas en esta fase.</summary>
         public bool Programado => !EnVivo;

@@ -19,6 +19,7 @@ namespace CasaApuestas.Models.ViewModels
         public int IdPartido { get; init; }
         public string Estado { get; init; } = string.Empty;
         public string Hora { get; init; } = string.Empty;
+        public int? Minuto { get; init; }
         public string Competicion { get; init; } = string.Empty;
         public int? Jornada { get; init; }
         public EquipoMiniViewModel Local { get; init; } = new("", "", null, null);

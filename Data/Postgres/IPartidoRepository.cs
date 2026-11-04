@@ -12,6 +12,12 @@ namespace CasaApuestas.Data.Postgres
         /// <summary>Partidos EN_VIVO y PROGRAMADO, ordenados por fecha y hora.</summary>
         Task<IReadOnlyList<Partido>> ListarPartidosActivosAsync(CancellationToken ct = default);
 
+        /// <summary>
+        /// Cuotas de varios partidos, disponibles o no (con su campo Disponible), de mercados activos, en UNA consulta. Los partidos
+        /// EN_VIVO muestran sus cuotas aunque esten momentaneamente cerradas (pausa tras un gol, minuto de cierre).
+        /// </summary>
+        Task<IReadOnlyList<Cuota>> ListarCuotasDePartidosAsync(IReadOnlyCollection<int> idsPartido, CancellationToken ct = default);
+
         /// <summary>Cuotas disponibles (de mercados activos) de los partidos indicados, en UNA sola consulta.</summary>
         Task<IReadOnlyList<Cuota>> ListarCuotasDisponiblesAsync(IReadOnlyCollection<int> idsPartido, CancellationToken ct = default);
 

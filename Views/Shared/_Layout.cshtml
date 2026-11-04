@@ -71,6 +71,7 @@
     @if (ViewData["ConCupon"] as bool? == true)
     {
         <script src="~/js/cupon.js" asp-append-version="true"></script>
+        <script src="~/js/vivo.js" asp-append-version="true"></script>
     }
     @await RenderSectionAsync("Scripts", required: false)
 </body>

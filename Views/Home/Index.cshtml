@@ -12,10 +12,11 @@
     // Los data-* solo sirven para pintar el cupon: el SERVIDOR relee la cuota, el partido y el mercado al confirmar.
     void Fila(PartidoFilaViewModel m)
     {
-        <div class="match">
+        @* data-vivo-*: vivo.js consulta /Partidos/Estado cada ~5 s y actualiza minuto, marcador y cuotas de esta fila. *@
+        <div class="match" data-vivo-id="@m.IdPartido" data-vivo-estado="@(m.EnVivo ? "EN_VIVO" : "PROGRAMADO")">
             <div class="time">
-                @if (m.EnVivo) { <b>En vivo</b> }
-                @m.Hora
+                @if (m.EnVivo) { <b>En vivo</b> <span class="vivo-min">@(m.Minuto is int mn ? mn + "'" : "")</span> }
+                else { @m.Hora }
             </div>
             <div class="teams">
                 @foreach (var t in new[] { m.Local, m.Visitante })
@@ -30,7 +31,7 @@
                             <span class="cat-sh sm" aria-hidden="true">@t.Iniciales</span>
                         }
                         <a class="t-link" href="@Url.Action("Detalle", "Partidos", new { id = m.IdPartido })">@t.Nombre</a>
-                        @if (t.Goles is int g) { <span class="sc">@g</span> }
+                        @if (t.Goles is int g) { <span class="sc @(ReferenceEquals(t, m.Local) ? "vivo-gl" : "vivo-gv")">@g</span> }
                     </div>
                 }
             </div>

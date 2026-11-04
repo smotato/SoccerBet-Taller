@@ -18,5 +18,8 @@ namespace CasaApuestas.Models.Partidos
         public int? GolesVisitante { get; set; }
         public string Estado { get; set; } = string.Empty;   // PROGRAMADO | EN_VIVO | FINALIZADO | SUSPENDIDO
         public DateTime? FechaFinalizacion { get; set; }
+
+        /// <summary>Minuto simulado (0 a 90). NULL en un PROGRAMADO. Lo escribe el simulador.</summary>
+        public int? Minuto { get; set; }
     }
 }

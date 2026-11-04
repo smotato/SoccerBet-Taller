@@ -14,7 +14,7 @@
 }
 else
 {
-    <div class="ap-hero">
+    <div class="ap-hero" data-vivo-id="@Model.IdPartido" data-vivo-estado="@Model.Estado">
         <div class="ap-hero-top">
             <small>@Model.Competicion@(Model.Jornada is int j ? $" · Jornada {j}" : "")</small>
             <span>
@@ -31,8 +31,8 @@ else
             <div class="ap-center">
                 @if (Model.MostrarMarcador)
                 {
-                    <div class="ap-score">@Model.Local.Goles - @Model.Visitante.Goles</div>
-                    <small>@Model.Hora</small>
+                    <div class="ap-score"><span class="vivo-gl">@Model.Local.Goles</span> - <span class="vivo-gv">@Model.Visitante.Goles</span></div>
+                    @if (Model.EnVivo) { <small class="vivo-min">@(Model.Minuto is int mn ? mn + "'" : "")</small> } else { <small>@Model.Hora</small> }
                 }
                 else
                 {

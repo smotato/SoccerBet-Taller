@@ -67,7 +67,12 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
   (`Simulador:IntervaloReconciliacionSegundos`) busca selecciones PENDIENTE de partidos FINALIZADO (reenvia el resultado) o SUSPENDIDO
   (`sp_AnularApuestasPartido`); es segura de repetir (patron saga). Cuando no quedan PROGRAMADO, `GeneradorJornada` crea la siguiente
   jornada (round-robin de los equipos de MySQL, estadio del local, 7 cuotas por partido con Poisson y `Simulador:MargenCasa`).
-- Pendiente (fase 6): cuotas en vivo (E3), modo demostracion (E4); apuestas en vivo y cash out (6b);
+- Cuotas en vivo (RF13, etapa E3) hechas: el simulador recalcula las cuotas de cada partido EN_VIVO en cada ciclo
+  (`Services/Simulador/CalculadoraCuotasVivo`: Poisson sobre los goles que faltan, anclado a `cuota_inicial`; minimo 1,01), las suspende
+  `Simulador:PausaTrasGolSegundos` tras cada gol, las cierra desde `Simulador:MinutoCierre` (85) y marca no disponible lo casi decidido
+  (`ProbCasiSegura`). `GET /Partidos/Estado?ids=` (JSON, publico, max. 30 ids) y `wwwroot/js/vivo.js` refrescan minuto, marcador y cuotas
+  (con ▲▼) cada ~5 s en el home y el detalle. El cupon sigue rechazando partidos EN_VIVO hasta la fase 6b.
+- Pendiente (fase 6): modo demostracion (E4); apuestas en vivo y cash out (6b);
   alineaciones y detalle de eventos (RF7); nube.
 - Entidades `Cliente` y `Saldo`: SOLO LECTURA desde C# (siempre `AsNoTracking()`, nunca `SaveChanges` sobre ellas).
   Solo `Login` se actualiza desde C# (intentos fallidos, bloqueo, ultimo_login).
