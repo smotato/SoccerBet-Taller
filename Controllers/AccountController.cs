@@ -37,11 +37,18 @@ namespace CasaApuestas.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string? returnUrl = null)
         {
-            // Quien ya tiene sesion no necesita ver el login.
-            if (User.Identity?.IsAuthenticated == true) return RedirectToAction("Index", "Home");
+            // returnUrl (tambien llega como ?ReturnUrl= desde [Authorize] y desde el cupon): SOLO se acepta una URL local
+            // (Url.IsLocalUrl rechaza "//otro-sitio", "http://otro-sitio" y "/\otro-sitio"). Cualquier otra cosa se ignora,
+            // para que nadie pueda usar el login como redireccion abierta hacia un sitio externo.
+            var destino = Url.IsLocalUrl(returnUrl) ? returnUrl : null;
 
+            // Quien ya tiene sesion no necesita ver el login.
+            if (User.Identity?.IsAuthenticated == true)
+                return destino is not null ? LocalRedirect(destino) : RedirectToAction("Index", "Home");
+
+            ViewData["ReturnUrl"] = destino;
             return View();
         }
 

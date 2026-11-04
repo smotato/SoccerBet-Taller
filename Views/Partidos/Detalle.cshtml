@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = Model.Error is null ? Model.TextoPartido : "Partido";
     var inv = CultureInfo.InvariantCulture;
+    ViewData["ConCupon"] = true;   // el _Layout agrega el cupon lateral (apostar, RF9)
 }
 
 <a class="cat-back" asp-controller="Home" asp-action="Index"><i class="bi bi-arrow-left" aria-hidden="true"></i>Partidos</a>

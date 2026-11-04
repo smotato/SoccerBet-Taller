@@ -3,8 +3,11 @@ namespace CasaApuestas.Models.ViewModels
     /// <summary>Equipo tal como lo pinta el home. Goles solo tiene valor en los partidos EN_VIVO.</summary>
     public record EquipoMiniViewModel(string Nombre, string Iniciales, string? EscudoUrl, int? Goles);
 
-    /// <summary>Una casilla de cuota. Valor es null cuando esa seleccion del 1X2 no esta disponible (se muestra un guion).</summary>
-    public record CuotaViewModel(string Etiqueta, decimal? Valor);
+    /// <summary>
+    /// Una casilla de cuota. Valor es null cuando esa seleccion del 1X2 no esta disponible (se muestra un guion).
+    /// IdCuota e IdMercado viajan en atributos data-* para el cupon; el servidor no los toma como verdad al confirmar.
+    /// </summary>
+    public record CuotaViewModel(string Etiqueta, decimal? Valor, int? IdCuota = null, int? IdMercado = null);
 
     /// <summary>Una fila de partido. Cuotas son SIEMPRE tres, en orden: local, empate, visitante (mercado 1X2).</summary>
     public record PartidoFilaViewModel(
@@ -14,7 +17,13 @@ namespace CasaApuestas.Models.ViewModels
         EquipoMiniViewModel Local,
         EquipoMiniViewModel Visitante,
         IReadOnlyList<CuotaViewModel> Cuotas,
-        int MercadosExtra);
+        int MercadosExtra,
+        string MercadoNombre)
+    {
+        /// <summary>Solo los partidos PROGRAMADO admiten apuestas en esta fase.</summary>
+        public bool Programado => !EnVivo;
+        public string TextoPartido => $"{Local.Nombre} vs {Visitante.Nombre}";
+    }
 
     /// <summary>Partidos de una competicion; Titulo es p. ej. "Colombia / Liga BetPlay" y sale de la entidad Liga (MySQL).</summary>
     public record GrupoLigaViewModel(string Titulo, IReadOnlyList<PartidoFilaViewModel> Partidos);

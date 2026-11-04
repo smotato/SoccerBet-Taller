@@ -3,11 +3,13 @@
 @using CasaApuestas.Models.ViewModels
 @{
     ViewData["Title"] = "Partidos";
+    ViewData["ConCupon"] = true;   // el _Layout agrega el cupon lateral (apostar, RF9)
 }
 
 @{
     // Renderiza una fila de partido. Cuotas con punto decimal (cultura invariante).
-    // Las cuotas se VEN pero todavia no se pueden pulsar: apostar es RF9 (por eso van "disabled").
+    // Las cuotas de los partidos PROGRAMADO se pueden pulsar (van al cupon); EN_VIVO queda deshabilitado en esta fase.
+    // Los data-* solo sirven para pintar el cupon: el SERVIDOR relee la cuota, el partido y el mercado al confirmar.
     void Fila(PartidoFilaViewModel m)
     {
         <div class="match">
@@ -37,7 +39,15 @@
                 <div class="odds">
                     @foreach (var c in m.Cuotas)
                     {
-                        <button type="button" class="odd" disabled>
+                        var apostable = m.Programado && c.Valor is not null && c.IdCuota is not null;
+                        <button type="button" class="odd" disabled="@(!apostable)"
+                                data-cuota-id="@c.IdCuota"
+                                data-valor="@(c.Valor is decimal dv ? dv.ToString("0.####", CultureInfo.InvariantCulture) : "")"
+                                data-partido-id="@m.IdPartido"
+                                data-mercado-id="@c.IdMercado"
+                                data-partido-txt="@m.TextoPartido"
+                                data-mercado-txt="@m.MercadoNombre"
+                                data-sel-txt="@c.Etiqueta">
                             <small>@c.Etiqueta</small><b>@(c.Valor is decimal v ? v.ToString("0.00", CultureInfo.InvariantCulture) : "–")</b>
                         </button>
                     }
@@ -108,7 +118,7 @@ else
 
 @section Scripts {
     <script>
-        // Interacción visual de pestañas y chips (las cuotas aún no son interactivas: apostar es RF9).
+        // Interacción visual de pestañas y chips. Las cuotas las maneja wwwroot/js/cupon.js.
         document.addEventListener('click', function (e) {
             const tab = e.target.closest('.tab');
             const chip = e.target.closest('.chip');

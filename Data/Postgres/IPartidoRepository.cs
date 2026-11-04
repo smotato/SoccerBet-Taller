@@ -27,6 +27,15 @@ namespace CasaApuestas.Data.Postgres
         /// </summary>
         Task<IReadOnlyList<Cuota>> ListarCuotasDePartidoAsync(int idPartido, CancellationToken ct = default);
 
+        /// <summary>
+        /// Cuotas por id, disponibles o no (con su campo Disponible), en UNA consulta. Es la lectura con la que el servidor
+        /// valida un cupon: nunca se confia en lo que enviaron el navegador o el cupon guardado.
+        /// </summary>
+        Task<IReadOnlyList<Cuota>> ListarCuotasPorIdsAsync(IReadOnlyCollection<int> idsCuota, CancellationToken ct = default);
+
+        /// <summary>Partidos por id, en cualquier estado, en UNA consulta.</summary>
+        Task<IReadOnlyList<Partido>> ListarPartidosPorIdsAsync(IReadOnlyCollection<int> idsPartido, CancellationToken ct = default);
+
         /// <summary>Los mercados (hoy 3: 1X2, total de goles 2.5 y ambos anotan), ordenados por id.</summary>
         Task<IReadOnlyList<Mercado>> ListarMercadosAsync(CancellationToken ct = default);
 

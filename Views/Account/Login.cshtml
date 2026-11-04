@@ -60,10 +60,9 @@
                 if (data.exito) {
                     // Login correcto: se redirige al home sin alerta. El loader NO se oculta:
                     // sigue visible hasta que el navegador cambia de página.
-                    // Si venía redirigido por [Authorize] (?ReturnUrl=...), vuelve a esa página. Solo se aceptan
-                    // rutas internas ("/algo"), nunca "//otro-sitio" ni "/\otro-sitio", para evitar redirecciones abiertas.
-                    const retorno = new URLSearchParams(window.location.search).get('ReturnUrl');
-                    const destino = (retorno && /^\/(?![\/\\])/.test(retorno)) ? retorno : '/Home/Index';
+                    // Si venía redirigido por [Authorize] o desde el cupón (?ReturnUrl=...), vuelve a esa página.
+                    // El destino lo valida el SERVIDOR con Url.IsLocalUrl (solo rutas locales): si no era local, se usa el home.
+                    const destino = @Json.Serialize((ViewData["ReturnUrl"] as string) ?? "/Home/Index");
                     window.location.href = destino;
                 } else {
                     Loader.hide(); // antes del SweetAlert, que quedaría por debajo del loader

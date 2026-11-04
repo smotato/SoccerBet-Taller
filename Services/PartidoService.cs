@@ -50,6 +50,7 @@ namespace CasaApuestas.Services
             foreach (var idLiga in calendarios.Values.Select(c => c.IdLiga).Distinct())
                 ligas[idLiga] = await _catalogo.ObtenerLigaAsync(idLiga, ct);
 
+            var mercados = (await _partidos.ListarMercadosAsync(ct)).ToDictionary(m => m.IdMercado);
             var ahora = FechaColombia.Ahora(_reloj);
             var cuotasPorPartido = cuotas.ToLookup(c => c.IdPartido);
 
@@ -58,7 +59,7 @@ namespace CasaApuestas.Services
             {
                 var idLiga = calendarios.TryGetValue(p.IdCalendario, out var cal) ? cal.IdLiga : 0;
                 ligas.TryGetValue(idLiga, out var liga);
-                return (Titulo: TituloLiga(liga), Fila: ArmarFila(p, cuotasPorPartido[p.IdPartido].ToList(), equipos, ahora), EnVivo: p.Estado == "EN_VIVO");
+                return (Titulo: TituloLiga(liga), Fila: ArmarFila(p, cuotasPorPartido[p.IdPartido].ToList(), equipos, mercados, ahora), EnVivo: p.Estado == "EN_VIVO");
             }).ToList();
 
             return new HomeViewModel
@@ -77,7 +78,7 @@ namespace CasaApuestas.Services
                  .ToList();
 
         private static PartidoFilaViewModel ArmarFila(Partido p, IReadOnlyList<Cuota> cuotas,
-            IReadOnlyDictionary<int, Equipo> equipos, DateTime ahora)
+            IReadOnlyDictionary<int, Equipo> equipos, IReadOnlyDictionary<int, Mercado> mercados, DateTime ahora)
         {
             var enVivo = p.Estado == "EN_VIVO";
             var local = Mini(equipos, p.IdEquipoLocal, enVivo ? p.GolesLocal ?? 0 : null);
@@ -85,19 +86,20 @@ namespace CasaApuestas.Services
 
             // Mercado 1X2: se reconoce por el codigo estable de la seleccion, no por el nombre ni por un id fijo.
             var cuota1x2 = cuotas.Where(c => Codigos1X2.Contains(c.CodigoSeleccion)).ToList();
-            decimal? Valor(string codigo) => cuota1x2.FirstOrDefault(c => c.CodigoSeleccion == codigo)?.Valor;
-            var casillas = new[]
+            CuotaViewModel Casilla(string etiqueta, string codigo)
             {
-                new CuotaViewModel(local.Nombre, Valor("LOCAL")),
-                new CuotaViewModel("Empate", Valor("EMPATE")),
-                new CuotaViewModel(visitante.Nombre, Valor("VISITANTE")),
-            };
+                var c = cuota1x2.FirstOrDefault(x => x.CodigoSeleccion == codigo);
+                return new CuotaViewModel(etiqueta, c?.Valor, c?.IdCuota, c?.IdMercado);
+            }
+            var casillas = new[] { Casilla(local.Nombre, "LOCAL"), Casilla("Empate", "EMPATE"), Casilla(visitante.Nombre, "VISITANTE") };
+            var idMercado1x2 = cuota1x2.Select(c => c.IdMercado).FirstOrDefault();
+            var nombreMercado = mercados.TryGetValue(idMercado1x2, out var mk) ? mk.Nombre : "Resultado final 1X2";
 
             // "+N": mercados adicionales al 1X2 que tienen cuotas disponibles.
             var mercados1x2 = cuota1x2.Select(c => c.IdMercado).ToHashSet();
             var extra = cuotas.Select(c => c.IdMercado).Where(m => !mercados1x2.Contains(m)).Distinct().Count();
 
-            return new PartidoFilaViewModel(p.IdPartido, enVivo, FechaColombia.Formatear(p.FechaHora, ahora), local, visitante, casillas, extra);
+            return new PartidoFilaViewModel(p.IdPartido, enVivo, FechaColombia.Formatear(p.FechaHora, ahora), local, visitante, casillas, extra, nombreMercado);
         }
 
         private static EquipoMiniViewModel Mini(IReadOnlyDictionary<int, Equipo> equipos, int idEquipo, int? goles)

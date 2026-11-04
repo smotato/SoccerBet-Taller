@@ -1,0 +1,23 @@
+@using System.Globalization
+@inject Microsoft.Extensions.Options.IOptions<CasaApuestas.Services.ApuestasOptions> Opciones
+@{
+    // Cupon de apuesta (panel lateral en escritorio, bajo la lista en movil). Lo pinta wwwroot/js/cupon.js.
+    // Los limites vienen de appsettings.json ("Apuestas"); el JavaScript solo los usa para avisar mas rapido:
+    // el SERVIDOR vuelve a validarlo todo al confirmar.
+    var o = Opciones.Value;
+    var inv = CultureInfo.InvariantCulture;
+    var esCliente = User.Identity?.IsAuthenticated == true && User.FindFirst(CasaApuestas.Controllers.AccountController.ClaimIdCliente) != null;
+}
+<aside class="ap-slip" id="cupon" aria-label="Cupón de apuesta"
+       data-autenticado="@(esCliente ? "1" : "0")"
+       data-login-url="@Url.Action("Login", "Account")"
+       data-confirmar-url="@Url.Action("Confirmar", "Apuestas")"
+       data-min="@o.ImporteMinimo.ToString("0", inv)"
+       data-max="@o.ImporteMaximo.ToString("0", inv)"
+       data-max-sel="@o.MaxSelecciones"
+       data-premio-max="@o.PremioMaximo.ToString("0", inv)">
+    @* Token antiforgery: cupon.js lo envia en el encabezado RequestVerificationToken de cada fetch. *@
+    @Html.AntiForgeryToken()
+    <h2 class="ap-slip-head">Cupón <span id="cuponTipo" class="ap-slip-tipo"></span></h2>
+    <div class="ap-slip-body" id="cuponCuerpo" aria-live="polite"></div>
+</aside>

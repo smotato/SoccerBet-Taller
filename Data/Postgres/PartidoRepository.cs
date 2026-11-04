@@ -47,6 +47,18 @@ namespace CasaApuestas.Data.Postgres
             await _db.Cuotas.AsNoTracking().Where(c => c.IdPartido == idPartido)
                 .OrderBy(c => c.IdMercado).ThenBy(c => c.IdCuota).ToListAsync(ct);
 
+        public async Task<IReadOnlyList<Cuota>> ListarCuotasPorIdsAsync(IReadOnlyCollection<int> idsCuota, CancellationToken ct = default)
+        {
+            if (idsCuota.Count == 0) return Array.Empty<Cuota>();
+            return await _db.Cuotas.AsNoTracking().Where(c => idsCuota.Contains(c.IdCuota)).ToListAsync(ct);
+        }
+
+        public async Task<IReadOnlyList<Partido>> ListarPartidosPorIdsAsync(IReadOnlyCollection<int> idsPartido, CancellationToken ct = default)
+        {
+            if (idsPartido.Count == 0) return Array.Empty<Partido>();
+            return await _db.Partidos.AsNoTracking().Where(p => idsPartido.Contains(p.IdPartido)).ToListAsync(ct);
+        }
+
         public async Task<IReadOnlyList<Mercado>> ListarMercadosAsync(CancellationToken ct = default) =>
             await _db.Mercados.AsNoTracking().OrderBy(m => m.IdMercado).ToListAsync(ct);
 

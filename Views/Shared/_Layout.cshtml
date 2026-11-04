@@ -48,13 +48,28 @@
         </aside>
 
         <main role="main">
-            @RenderBody()
+            @if (ViewData["ConCupon"] as bool? == true)
+            {
+                @* Paginas con cupon (home y detalle de partido): contenido a la izquierda y cupon a la derecha. *@
+                <div class="ap-layout">
+                    <div class="ap-col">@RenderBody()</div>
+                    <partial name="_Cupon" />
+                </div>
+            }
+            else
+            {
+                @RenderBody()
+            }
         </main>
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/loader.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    @if (ViewData["ConCupon"] as bool? == true)
+    {
+        <script src="~/js/cupon.js" asp-append-version="true"></script>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

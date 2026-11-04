@@ -53,7 +53,7 @@ namespace CasaApuestas.Services
                 .Select(m => new MercadoViewModel(m.IdMercado, m.Nombre,
                     cuotas.Where(c => c.IdMercado == m.IdMercado)
                           .OrderBy(c => Array.IndexOf(OrdenCodigos, c.CodigoSeleccion))
-                          .Select(c => new SeleccionViewModel(c.IdCuota, Etiqueta(c, local.Nombre, visitante.Nombre), c.Valor,
+                          .Select(c => new SeleccionViewModel(c.IdCuota, EtiquetaCuota.Texto(c, local.Nombre, visitante.Nombre), c.Valor,
                                                               Apostable: programado && c.Disponible))
                           .ToList()))
                 .Where(m => m.Selecciones.Count > 0)
@@ -71,15 +71,6 @@ namespace CasaApuestas.Services
                 Mercados = vmMercados
             };
         }
-
-        /// <summary>1X2 se rotula con los nombres de los equipos (como el home); los demas mercados con el texto de la cuota.</summary>
-        private static string Etiqueta(Models.Partidos.Cuota c, string local, string visitante) => c.CodigoSeleccion switch
-        {
-            "LOCAL" => local,
-            "VISITANTE" => visitante,
-            "EMPATE" => "Empate",
-            _ => c.Seleccion
-        };
 
         private static EquipoMiniViewModel Mini(IReadOnlyDictionary<int, Equipo> equipos, int idEquipo, int? goles)
         {

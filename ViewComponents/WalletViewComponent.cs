@@ -1,8 +1,8 @@
-using System.Globalization;
 using System.Security.Claims;
 using CasaApuestas.Controllers;
 using CasaApuestas.Models.ViewModels;
 using CasaApuestas.Services;
+using CasaApuestas.Services.Presentacion;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CasaApuestas.ViewComponents
@@ -14,15 +14,6 @@ namespace CasaApuestas.ViewComponents
     /// </summary>
     public class WalletViewComponent : ViewComponent
     {
-        // Formato colombiano: punto para miles y coma para decimales. Se define a mano para no depender
-        // de la cultura instalada en el servidor.
-        private static readonly NumberFormatInfo FormatoCo = new()
-        {
-            NumberGroupSeparator = ".",
-            NumberDecimalSeparator = ",",
-            NumberGroupSizes = new[] { 3 }
-        };
-
         private readonly ISaldoService _saldoService;
         private readonly ILogger<WalletViewComponent> _logger;
 
@@ -53,7 +44,7 @@ namespace CasaApuestas.ViewComponents
 
             try
             {
-                modelo.SaldoTexto = FormatearPesos(await _saldoService.ObtenerSaldoAsync(idCliente));
+                modelo.SaldoTexto = Pesos.Formatear(await _saldoService.ObtenerSaldoAsync(idCliente));
             }
             catch (Exception ex)
             {
@@ -63,13 +54,6 @@ namespace CasaApuestas.ViewComponents
             }
 
             return View(modelo);
-        }
-
-        // "$ 120.000" (sin decimales si es entero) o "$ 120.000,50".
-        private static string FormatearPesos(decimal valor)
-        {
-            var formato = valor == decimal.Truncate(valor) ? "N0" : "N2";
-            return "$ " + valor.ToString(formato, FormatoCo);
         }
 
         // Primera letra del primer y del ultimo nombre/apellido: "Juan Carlos Perez Gomez" -> "JG".

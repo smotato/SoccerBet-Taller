@@ -25,6 +25,21 @@ builder.Services
         options.LoginPath = "/Account/Login";                        // a donde se redirige a quien entra sin sesion ([Authorize])
         options.LogoutPath = "/Account/Logout";
         options.AccessDeniedPath = "/Account/Login";                // no hay roles en este alcance; se reutiliza el login
+
+        // Las llamadas del cupon (fetch con X-Requested-With) NO deben recibir un 302 al HTML del login: responden 401/403
+        // para que el cupon pueda avisar "tu sesion caduco" sin romperse. Las paginas normales siguen redirigiendo al login.
+        options.Events.OnRedirectToLogin = ctx =>
+        {
+            if (EsPeticionAjax(ctx.Request)) ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            else ctx.Response.Redirect(ctx.RedirectUri);
+            return Task.CompletedTask;
+        };
+        options.Events.OnRedirectToAccessDenied = ctx =>
+        {
+            if (EsPeticionAjax(ctx.Request)) ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+            else ctx.Response.Redirect(ctx.RedirectUri);
+            return Task.CompletedTask;
+        };
     });
 
 // Antiforgery: los fetch (login y registro) envian el token en este encabezado, ademas de la cookie antiforgery.
@@ -96,6 +111,15 @@ builder.Services.AddScoped<CasaApuestas.Services.IPartidoService, CasaApuestas.S
 builder.Services.AddScoped<CasaApuestas.Services.IPosicionesService, CasaApuestas.Services.PosicionesService>();
 builder.Services.AddScoped<CasaApuestas.Services.IDetallePartidoService, CasaApuestas.Services.DetallePartidoService>();
 
+// Apuestas (RF9): limites desde appsettings.json ("Apuestas"); si faltan o son invalidos la app no arranca.
+builder.Services.AddOptions<CasaApuestas.Services.ApuestasOptions>()
+    .Bind(builder.Configuration.GetSection(CasaApuestas.Services.ApuestasOptions.Seccion))
+    .Validate(CasaApuestas.Services.ApuestasOptions.EsValida,
+        "Falta o es invalida la seccion 'Apuestas' de appsettings.json (ImporteMinimo, ImporteMaximo, MaxSelecciones, PremioMaximo).")
+    .ValidateOnStart();
+builder.Services.AddScoped<CasaApuestas.Data.SqlServer.IApuestaRepository, CasaApuestas.Data.SqlServer.ApuestaRepository>();
+builder.Services.AddScoped<CasaApuestas.Services.IApuestaService, CasaApuestas.Services.ApuestaService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -120,3 +144,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+// fetch/XHR del cupon: el JavaScript envia X-Requested-With: XMLHttpRequest.
+static bool EsPeticionAjax(HttpRequest request) =>
+    string.Equals(request.Headers.XRequestedWith, "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
