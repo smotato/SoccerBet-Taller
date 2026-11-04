@@ -21,7 +21,7 @@ ser **sencillas o combinadas**. Ver "Reglas de apuestas" mas abajo.
 - [x] RF1 Login con correo y contrasena (con diseno, PasswordHasher, bloqueo tras 5 intentos fallidos, cliente ACTIVO, cookie de 8 h).
 - [x] RF2 Registro de cliente (solo mayores de 18, usar `sp_RegistrarCliente`).
 - [x] RF3 Cerrar sesion (POST con antiforgery) y proteger las paginas que requieren sesion iniciada. El home es publico; `[Authorize]` se aplica solo a las paginas del cliente (apostar, mis apuestas, billetera) cuando existan.
-- [ ] RF15 Recuperar contrasena (**se implementa despues de apostar y de la simulacion**; hoy el enlace "Olvide mi contrasena" del login no hace nada).
+- [x] RF15 Recuperar contrasena (**se implementa despues de apostar y de la simulacion**; hoy el enlace "Olvide mi contrasena" del login no hace nada).
   - El cliente indica su correo y recibe un enlace o codigo de un solo uso, con vencimiento corto (por ejemplo 30 minutos).
   - La respuesta es la misma exista o no el correo, para no revelar que correos estan registrados.
   - Al cambiar la contrasena: se guarda con `PasswordHasher`, el codigo se invalida, se reinician `intentos_fallidos` y se desbloquea la cuenta si estaba bloqueada por intentos.

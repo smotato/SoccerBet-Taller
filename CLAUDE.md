@@ -89,7 +89,13 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
   salen solo de los titulares. `/Partidos/Detalle/{id}` muestra cronologia (mas reciente arriba) y alineaciones (`EventosPartidoService`, nombres SIEMPRE de MySQL,
   nunca del `descripcion` de Mongo); `GET /Partidos/Eventos/{id}` entrega el fragmento que `vivo.js` refresca solo si el partido esta EN_VIVO. Si Mongo cae, aviso
   amable y las cuotas siguen. PROGRAMADO: "Aun no hay eventos" (+ alineacion si existe); SUSPENDIDO: "Partido anulado"; no se inventan eventos del pasado.
-- Pendiente: retiros reales/nube/RF15 segun specs.md; nube.
+- Recuperar contrasena (RF15) hecho: "Olvide mi contrasena" -> `/Recuperacion/Olvide` (mensaje SIEMPRE igual) -> correo con enlace `/Recuperacion/Restablecer?t={id}.{codigo}`.
+  SQL Server guarda SOLO el hash SHA-256 del codigo (`Recuperacion_Clave`, `db/sqlserver/06_recuperacion_clave.sql`; 30 min, un solo vigente, 3 solicitudes/hora por
+  usuario); `sp_RestablecerClave` cambia la clave (`PasswordHasher`), reinicia intentos y desbloquea. Entrega tras `IEntregaEnlace`: `EntregaSmtp` (MailKit, Gmail 587
+  STARTTLS, contrasena de APLICACION en user-secrets `Smtp:Usuario`/`Smtp:Clave`; fuera de Development el envio va en segundo plano para que la respuesta tarde igual) y
+  `EntregaEnPantallaDevelopment` (solo se registra en Development). Limites: 5 por IP cada 15 min (rate limiter) y 3 por hora por correo. La pagina de restablecer envia
+  `Referrer-Policy: no-referrer`; el token nunca se escribe en logs. El destinatario es siempre el correo registrado del usuario.
+- Pendiente: retiros reales y nube segun specs.md.
 - Entidades `Cliente` y `Saldo`: SOLO LECTURA desde C# (siempre `AsNoTracking()`, nunca `SaveChanges` sobre ellas).
   Solo `Login` se actualiza desde C# (intentos fallidos, bloqueo, ultimo_login).
 - Mockups de referencia (HTML): `docs/mockups/login.html`, `docs/mockups/home.html`, `docs/mockups/equipos.html` y
