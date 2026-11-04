@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using CasaApuestas.Models;
 using CasaApuestas.Models.ViewModels;
+using CasaApuestas.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,16 +14,30 @@ namespace CasaApuestas.Controllers
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private const string MensajeSinPartidos = "No pudimos cargar los partidos en este momento. Intenta de nuevo en unos minutos.";
 
-        public HomeController(ILogger<HomeController> logger)
+        private readonly ILogger<HomeController> _logger;
+        private readonly IPartidoService _partidos;
+
+        public HomeController(ILogger<HomeController> logger, IPartidoService partidos)
         {
             _logger = logger;
+            _partidos = partidos;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index(CancellationToken ct)
         {
-            return View();
+            try
+            {
+                return View(await _partidos.ObtenerHomeAsync(ct));
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                // Si PostgreSQL o MySQL no responden el home carga igual (cabecera, menu, login) con un mensaje claro;
+                // el detalle tecnico solo va al log.
+                _logger.LogError(ex, "No se pudieron leer los partidos del home (PostgreSQL/MySQL).");
+                return View(new HomeViewModel { Error = MensajeSinPartidos });
+            }
         }
 
         public IActionResult Error()

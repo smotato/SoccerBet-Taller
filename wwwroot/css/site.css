@@ -78,6 +78,7 @@ a.btn{display:inline-block;line-height:1.5}
 .odd small{display:block;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .odd b{font:700 20px "Barlow Condensed",sans-serif}
 .odd:hover{border-color:var(--pink-d)}
+.odd:disabled{color:inherit;cursor:default}.odd:disabled:hover{border-color:#CFC6D4}
 .odd.sel{background:var(--pink);border-color:var(--pink-d)}.odd.sel small{color:var(--ink)}
 
 @media(max-width:900px){.promos{grid-template-columns:1fr}}

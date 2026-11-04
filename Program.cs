@@ -82,6 +82,18 @@ builder.Services.AddDbContext<CasaApuestas.Data.MySql.CatalogoDbContext>(options
 builder.Services.AddScoped<CasaApuestas.Data.MySql.ICatalogoRepository, CasaApuestas.Data.MySql.CatalogoRepository>();
 builder.Services.AddScoped<CasaApuestas.Services.ICatalogoService, CasaApuestas.Services.CatalogoService>();
 
+// PostgreSQL (partidos y cuotas, solo lectura por ahora): tercer contexto, separado de los otros dos.
+builder.Services.AddDbContext<CasaApuestas.Data.Postgres.PartidosDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
+builder.Services.AddScoped<CasaApuestas.Data.Postgres.IPartidoRepository, CasaApuestas.Data.Postgres.PartidoRepository>();
+
+// Home: combina PostgreSQL (partidos) con MySQL (nombres y escudos) en la capa de servicios. El cache en memoria guarda
+// unos minutos los equipos del catalogo. TimeProvider permite obtener "ahora" (y probarlo) sin llamar a DateTime directamente.
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<CasaApuestas.Services.IEquiposCache, CasaApuestas.Services.EquiposCache>();
+builder.Services.AddScoped<CasaApuestas.Services.IPartidoService, CasaApuestas.Services.PartidoService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

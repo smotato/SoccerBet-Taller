@@ -15,6 +15,9 @@ namespace CasaApuestas.Data.MySql
         Task<Liga?> ObtenerLigaAsync(int idLiga, CancellationToken ct = default);
         Task<IReadOnlyList<Equipo>> ListarEquiposAsync(CancellationToken ct = default);
         Task<Equipo?> ObtenerEquipoAsync(int idEquipo, CancellationToken ct = default);
+
+        /// <summary>Varios equipos en UNA sola consulta (WHERE id_equipo IN (...)); los ids que no existan simplemente no vienen.</summary>
+        Task<IReadOnlyList<Equipo>> ListarEquiposPorIdsAsync(IReadOnlyCollection<int> idsEquipo, CancellationToken ct = default);
         Task<IReadOnlyList<EstadioDeEquipo>> ListarEstadiosDeEquiposAsync(IReadOnlyCollection<int> idsEquipo, CancellationToken ct = default);
         Task<IReadOnlyList<Jugador>> ListarJugadoresDeEquipoAsync(int idEquipo, CancellationToken ct = default);
     }

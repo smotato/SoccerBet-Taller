@@ -25,6 +25,12 @@ namespace CasaApuestas.Data.MySql
         public async Task<Equipo?> ObtenerEquipoAsync(int idEquipo, CancellationToken ct = default) =>
             await _db.Equipos.AsNoTracking().FirstOrDefaultAsync(e => e.IdEquipo == idEquipo, ct);
 
+        public async Task<IReadOnlyList<Equipo>> ListarEquiposPorIdsAsync(IReadOnlyCollection<int> idsEquipo, CancellationToken ct = default)
+        {
+            if (idsEquipo.Count == 0) return Array.Empty<Equipo>();
+            return await _db.Equipos.AsNoTracking().Where(e => idsEquipo.Contains(e.IdEquipo)).ToListAsync(ct);
+        }
+
         public async Task<IReadOnlyList<EstadioDeEquipo>> ListarEstadiosDeEquiposAsync(IReadOnlyCollection<int> idsEquipo, CancellationToken ct = default)
         {
             // Dos consultas sencillas y union en memoria (en lugar de un JOIN): es el mismo patron que se usara
