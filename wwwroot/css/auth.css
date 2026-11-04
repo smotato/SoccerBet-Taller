@@ -52,3 +52,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Barlow,sys
 .foot{margin:16px 0 0;font-size:14px;color:var(--muted);text-align:center}
 .foot a{color:var(--pink-d);font-weight:600}
 @media(max-width:900px){.login{grid-template-columns:1fr}.side{padding:28px;min-height:240px;gap:18px}.login h1{font-size:44px;margin-bottom:14px}.ticket{display:none}.perks{margin-top:0}}
+
+/* Recuperar contrasena (RF15) */
+.aviso-ok{background:#E3F3E8;color:#14602B;border-radius:8px;padding:10px 12px;font-size:14px;font-weight:500;margin:12px 0}
+.aviso-dev{background:#FFF3D6;color:#8A5A00;border-radius:8px;padding:10px 12px;font-size:13px;margin:12px 0;word-break:break-all}
+a.btn-pink{box-sizing:border-box}

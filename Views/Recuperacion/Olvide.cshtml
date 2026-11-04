@@ -1,0 +1,38 @@
+@model CasaApuestas.Models.ViewModels.OlvideViewModel
+@{
+    ViewData["Title"] = "Recuperar contraseña";
+    Layout = "_AuthLayout";
+}
+
+<section class="login">
+    <partial name="_AuthSide" />
+    <div class="form">
+        <div class="card">
+            <h2>Recuperar contraseña</h2>
+            @if (Model.Enviado)
+            {
+                @* Mensaje UNICO: es el mismo exista o no el correo. *@
+                <div class="aviso-ok" role="status">@CasaApuestas.Controllers.RecuperacionController.MensajeGenerico</div>
+                @if (Model.EnlaceDevelopment is not null)
+                {
+                    <div class="aviso-dev" role="note">
+                        <b>Solo Development:</b> el correo no salió por SMTP. Enlace de prueba:<br />
+                        <a href="@Model.EnlaceDevelopment" rel="noreferrer">@Model.EnlaceDevelopment</a>
+                    </div>
+                }
+                <p class="foot"><a asp-controller="Account" asp-action="Login">Volver a iniciar sesión</a></p>
+            }
+            else
+            {
+                <p class="sub">Escribe tu correo y te enviaremos un enlace para elegir una contraseña nueva.</p>
+                <form asp-controller="Recuperacion" asp-action="Olvide" method="post" data-loader novalidate>
+                    <label for="Email">Correo electrónico</label>
+                    <input id="Email" name="Email" type="email" maxlength="150" value="@Model.Email" placeholder="nombre@correo.com" autocomplete="email" required>
+                    <span class="field-error" role="alert">@Html.ValidationMessageFor(m => m.Email)</span>
+                    <button type="submit" class="btn-pink">Enviar enlace</button>
+                </form>
+                <p class="foot"><a asp-controller="Account" asp-action="Login">Volver a iniciar sesión</a></p>
+            }
+        </div>
+    </div>
+</section>

@@ -1,0 +1,15 @@
+@{
+    ViewData["Title"] = "Contraseña actualizada";
+    Layout = "_AuthLayout";
+}
+
+<section class="login">
+    <partial name="_AuthSide" />
+    <div class="form">
+        <div class="card">
+            <h2>Contraseña actualizada</h2>
+            <div class="aviso-ok" role="status">Tu contraseña se cambió correctamente. Si tu cuenta estaba bloqueada por intentos fallidos, ya quedó desbloqueada.</div>
+            <a class="btn-pink" asp-controller="Account" asp-action="Login">Iniciar sesión</a>
+        </div>
+    </div>
+</section>

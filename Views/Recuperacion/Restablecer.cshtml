@@ -1,0 +1,26 @@
+@model CasaApuestas.Models.ViewModels.RestablecerViewModel
+@{
+    ViewData["Title"] = "Nueva contraseña";
+    Layout = "_AuthLayout";
+}
+
+<section class="login">
+    <partial name="_AuthSide" />
+    <div class="form">
+        <div class="card">
+            <h2>Nueva contraseña</h2>
+            <p class="sub">Elige una contraseña de al menos 8 caracteres.</p>
+            <form asp-controller="Recuperacion" asp-action="Restablecer" method="post" data-loader novalidate>
+                <input type="hidden" name="T" value="@Model.T" />
+                <label for="Password">Contraseña nueva</label>
+                <input id="Password" name="Password" type="password" maxlength="100" autocomplete="new-password" required>
+                <span class="field-error" role="alert">@Html.ValidationMessageFor(m => m.Password)</span>
+                <label for="ConfirmarPassword">Repite la contraseña</label>
+                <input id="ConfirmarPassword" name="ConfirmarPassword" type="password" maxlength="100" autocomplete="new-password" required>
+                <span class="field-error" role="alert">@Html.ValidationMessageFor(m => m.ConfirmarPassword)</span>
+                <span class="field-error" role="alert">@Html.ValidationSummary(true)</span>
+                <button type="submit" class="btn-pink">Guardar contraseña</button>
+            </form>
+        </div>
+    </div>
+</section>

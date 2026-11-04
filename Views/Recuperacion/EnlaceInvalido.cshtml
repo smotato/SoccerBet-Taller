@@ -1,0 +1,17 @@
+@{
+    ViewData["Title"] = "Enlace no válido";
+    Layout = "_AuthLayout";
+}
+
+<section class="login">
+    <partial name="_AuthSide" />
+    <div class="form">
+        <div class="card">
+            <h2>Enlace no válido</h2>
+            @* Mismo texto para enlace vencido, ya usado o incorrecto: no se distingue la causa. *@
+            <p class="sub">Este enlace no es válido o ya venció. Pide uno nuevo para continuar.</p>
+            <a class="btn-pink" asp-controller="Recuperacion" asp-action="Olvide">Pedir un enlace nuevo</a>
+            <p class="foot"><a asp-controller="Account" asp-action="Login">Volver a iniciar sesión</a></p>
+        </div>
+    </div>
+</section>

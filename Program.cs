@@ -113,6 +113,46 @@ builder.Services.AddScoped<CasaApuestas.Services.IDetallePartidoService, CasaApu
 builder.Services.AddScoped<CasaApuestas.Services.IEventosPartidoService, CasaApuestas.Services.EventosPartidoService>();
 builder.Services.AddScoped<CasaApuestas.Services.IEstadoVivoService, CasaApuestas.Services.EstadoVivoService>();
 
+// Recuperar contrasena (RF15). Opciones de appsettings.json ("Recuperacion", "Smtp"); Smtp:Usuario y Smtp:Clave SOLO en user-secrets.
+// El correo se entrega detras de IEntregaEnlace: SMTP (MailKit) siempre; la entrega "en pantalla" SOLO se registra en Development.
+builder.Services.AddOptions<CasaApuestas.Services.Recuperacion.RecuperacionOptions>()
+    .Bind(builder.Configuration.GetSection(CasaApuestas.Services.Recuperacion.RecuperacionOptions.Seccion))
+    .Validate(CasaApuestas.Services.Recuperacion.RecuperacionOptions.EsValida, "Falta o es invalida la seccion 'Recuperacion' de appsettings.json.")
+    .ValidateOnStart();
+builder.Services.AddOptions<CasaApuestas.Services.Recuperacion.SmtpOptions>()
+    .Bind(builder.Configuration.GetSection(CasaApuestas.Services.Recuperacion.SmtpOptions.Seccion))
+    .Validate(CasaApuestas.Services.Recuperacion.SmtpOptions.EsValida, "Smtp:Habilitado = true exige Servidor, Puerto, Usuario y Clave (Usuario y Clave en user-secrets).")
+    .ValidateOnStart();
+builder.Services.AddSingleton<CasaApuestas.Services.Recuperacion.IEntregaEnlace, CasaApuestas.Services.Recuperacion.EntregaSmtp>();
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddSingleton<CasaApuestas.Services.Recuperacion.IEntregaEnlace, CasaApuestas.Services.Recuperacion.EntregaEnPantallaDevelopment>();
+builder.Services.AddSingleton<CasaApuestas.Services.Recuperacion.EnviadorRecuperacion>();
+builder.Services.AddSingleton<CasaApuestas.Services.Recuperacion.ColaCorreosRecuperacion>();
+builder.Services.AddHostedService<CasaApuestas.Background.EnvioCorreosHostedService>();
+builder.Services.AddScoped<CasaApuestas.Data.SqlServer.IRecuperacionRepository, CasaApuestas.Data.SqlServer.RecuperacionRepository>();
+builder.Services.AddScoped<CasaApuestas.Services.Recuperacion.IRecuperacionService, CasaApuestas.Services.Recuperacion.RecuperacionService>();
+// Limite por IP (ventana fija): 5 solicitudes cada 15 min (configurable). El limite por correo (3 por hora) esta en el servicio y en SQL.
+builder.Services.AddRateLimiter(o =>
+{
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    o.OnRejected = async (ctx, ct) =>
+    {
+        ctx.HttpContext.Response.ContentType = "text/plain; charset=utf-8";
+        await ctx.HttpContext.Response.WriteAsync("Demasiados intentos. Espera unos minutos e inténtalo de nuevo.", ct);
+    };
+    var rec = builder.Configuration.GetSection(CasaApuestas.Services.Recuperacion.RecuperacionOptions.Seccion).Get<CasaApuestas.Services.Recuperacion.RecuperacionOptions>() ?? new();
+    foreach (var nombre in new[] { "recuperacion-solicitud", "recuperacion-restablecer" })
+        o.AddPolicy(nombre, ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            nombre + ":" + (ctx.Connection.RemoteIpAddress?.ToString() ?? "?"),
+            _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            {
+                PermitLimit = Math.Max(1, rec.MaxSolicitudesPorIp),
+                Window = TimeSpan.FromMinutes(Math.Max(1, rec.VentanaIpMinutos)),
+                QueueLimit = 0
+            }));
+});
+
+
 // Apuestas (RF9): limites desde appsettings.json ("Apuestas"); si faltan o son invalidos la app no arranca.
 builder.Services.AddOptions<CasaApuestas.Services.ApuestasOptions>()
     .Bind(builder.Configuration.GetSection(CasaApuestas.Services.ApuestasOptions.Seccion))
@@ -208,6 +248,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseRateLimiter();
 
 // El orden importa: primero se identifica al usuario (cookie) y despues se autoriza.
 app.UseAuthentication();
