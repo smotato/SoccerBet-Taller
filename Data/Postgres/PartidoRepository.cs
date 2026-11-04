@@ -40,6 +40,16 @@ namespace CasaApuestas.Data.Postgres
                             && _db.Calendarios.Any(c => c.IdCalendario == p.IdCalendario && c.IdLiga == idLiga && c.Temporada == temporada))
                 .ToListAsync(ct);
 
+        public async Task<Partido?> ObtenerPartidoAsync(int idPartido, CancellationToken ct = default) =>
+            await _db.Partidos.AsNoTracking().FirstOrDefaultAsync(p => p.IdPartido == idPartido, ct);
+
+        public async Task<IReadOnlyList<Cuota>> ListarCuotasDePartidoAsync(int idPartido, CancellationToken ct = default) =>
+            await _db.Cuotas.AsNoTracking().Where(c => c.IdPartido == idPartido)
+                .OrderBy(c => c.IdMercado).ThenBy(c => c.IdCuota).ToListAsync(ct);
+
+        public async Task<IReadOnlyList<Mercado>> ListarMercadosAsync(CancellationToken ct = default) =>
+            await _db.Mercados.AsNoTracking().OrderBy(m => m.IdMercado).ToListAsync(ct);
+
         public async Task<IReadOnlyList<Calendario>> ListarCalendariosAsync(IReadOnlyCollection<int> idsCalendario, CancellationToken ct = default)
         {
             if (idsCalendario.Count == 0) return Array.Empty<Calendario>();

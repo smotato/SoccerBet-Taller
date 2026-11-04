@@ -1,0 +1,87 @@
+@model CasaApuestas.Models.ViewModels.DetallePartidoViewModel
+@using System.Globalization
+@{
+    ViewData["Title"] = Model.Error is null ? Model.TextoPartido : "Partido";
+    var inv = CultureInfo.InvariantCulture;
+}
+
+<a class="cat-back" asp-controller="Home" asp-action="Index"><i class="bi bi-arrow-left" aria-hidden="true"></i>Partidos</a>
+
+@if (Model.Error is not null)
+{
+    <div class="cat-empty" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><p>@Model.Error</p></div>
+}
+else
+{
+    <div class="ap-hero">
+        <div class="ap-hero-top">
+            <small>@Model.Competicion@(Model.Jornada is int j ? $" · Jornada {j}" : "")</small>
+            <span>
+                @if (Model.EnVivo) { <span class="tag">EN VIVO</span> }
+                else if (Model.Programado) { <span class="tag p">PRÓXIMO</span> }
+                else { <span class="tag x">@(Model.Estado == "FINALIZADO" ? "FINALIZADO" : Model.Estado)</span> }
+            </span>
+        </div>
+        <div class="ap-hero-teams">
+            <div class="ap-team">
+                <partial name="_Escudo" model="@((Model.Local.EscudoUrl, Model.Local.Iniciales, Model.Local.Nombre, false))" />
+                <b>@Model.Local.Nombre</b>
+            </div>
+            <div class="ap-center">
+                @if (Model.MostrarMarcador)
+                {
+                    <div class="ap-score">@Model.Local.Goles - @Model.Visitante.Goles</div>
+                    <small>@Model.Hora</small>
+                }
+                else
+                {
+                    <div class="ap-vs">@Model.Hora</div>
+                }
+            </div>
+            <div class="ap-team">
+                <partial name="_Escudo" model="@((Model.Visitante.EscudoUrl, Model.Visitante.Iniciales, Model.Visitante.Nombre, false))" />
+                <b>@Model.Visitante.Nombre</b>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Programado)
+    {
+        <div class="ap-msg warn" role="status">
+            <i class="bi bi-lock" aria-hidden="true"></i>
+            @(Model.EnVivo ? "El partido está en vivo: por ahora solo se puede apostar antes de que empiece."
+              : Model.Estado == "FINALIZADO" ? "El partido ya terminó: las cuotas se muestran solo como referencia."
+              : "Este partido no admite apuestas.")
+        </div>
+    }
+
+    @if (Model.Mercados.Count == 0)
+    {
+        <div class="cat-empty"><i class="bi bi-graph-up" aria-hidden="true"></i><p>Este partido todavía no tiene mercados.</p></div>
+    }
+
+    @foreach (var mk in Model.Mercados)
+    {
+        <section class="ap-mk">
+            <h3>@mk.Nombre</h3>
+            <div class="ap-odds @(mk.Selecciones.Count == 2 ? "two" : "")">
+                @foreach (var s in mk.Selecciones)
+                {
+                    @* Los data-* los usa el cupon (etapa 2). El servidor NUNCA los toma como verdad: relee la cuota en PostgreSQL. *@
+                    <button type="button" class="odd" disabled="@(!s.Apostable)"
+                            data-cuota-id="@s.IdCuota"
+                            data-valor="@s.Valor.ToString("0.####", inv)"
+                            data-partido-id="@Model.IdPartido"
+                            data-mercado-id="@mk.IdMercado"
+                            data-partido-txt="@Model.TextoPartido"
+                            data-mercado-txt="@mk.Nombre"
+                            data-sel-txt="@s.Etiqueta">
+                        <small>@s.Etiqueta</small><b>@s.Valor.ToString("0.00", inv)</b>
+                    </button>
+                }
+            </div>
+        </section>
+    }
+
+    <p class="fine">En el cupón solo cabe una selección por mercado en cada partido. Puedes combinar mercados distintos del mismo partido (máx. 3).</p>
+}

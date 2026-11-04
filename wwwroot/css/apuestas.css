@@ -1,0 +1,26 @@
+/* Apostar: detalle de partido, cupon y Mis apuestas. Basado en docs/mockups/apuestas.html. Prefijo ap- para no chocar con site.css. */
+.ap-hero{background:var(--ink);color:#fff;border-radius:10px;padding:18px 20px;margin-bottom:12px}
+.ap-hero-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.ap-hero-top small{color:#cfc6d4}
+.ap-hero-teams{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center}
+.ap-team{display:flex;align-items:center;gap:12px;font:700 22px/1.1 "Barlow Condensed",sans-serif}
+.ap-team:last-child{justify-content:flex-end;text-align:right;flex-direction:row-reverse}
+.ap-hero .cat-sh{background:#2c2233;border-color:#42364a;color:#cfc6d4;width:52px;height:52px;font-size:16px}
+.ap-center{text-align:center;color:#cfc6d4}
+.ap-score{font:700 40px/1 "Barlow Condensed",sans-serif;color:#fff}
+.ap-vs{font:700 22px/1.1 "Barlow Condensed",sans-serif;color:#fff}
+.ap-msg{border-radius:8px;padding:8px 12px;font-size:13px;font-weight:500;margin-bottom:12px;display:flex;gap:8px;align-items:center}
+.ap-msg.warn{background:#FFF3D6;color:#8A5A00}
+.ap-msg.err{background:#FBE7E4;color:#8C2219}
+.ap-mk{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.ap-mk>h3{margin:0;padding:10px 16px;background:#F4F8FB;border-bottom:1px solid var(--line);font-size:14px}
+.ap-odds{display:grid;grid-template-columns:repeat(3,minmax(0,120px));gap:8px;padding:12px 16px}
+.ap-odds.two{grid-template-columns:repeat(2,minmax(0,140px))}
+.tag.x{background:#4A5157}
+.fine{font-size:12px;color:var(--muted)}
+.t-link:hover,.more:hover{text-decoration:underline}
+@media(max-width:640px){
+  .ap-hero-teams{grid-template-columns:1fr;gap:8px}
+  .ap-team,.ap-team:last-child{justify-content:flex-start;text-align:left;flex-direction:row}
+  .ap-odds,.ap-odds.two{grid-template-columns:repeat(auto-fit,minmax(90px,1fr))}
+}

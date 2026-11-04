@@ -94,6 +94,7 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<CasaApuestas.Services.IEquiposCache, CasaApuestas.Services.EquiposCache>();
 builder.Services.AddScoped<CasaApuestas.Services.IPartidoService, CasaApuestas.Services.PartidoService>();
 builder.Services.AddScoped<CasaApuestas.Services.IPosicionesService, CasaApuestas.Services.PosicionesService>();
+builder.Services.AddScoped<CasaApuestas.Services.IDetallePartidoService, CasaApuestas.Services.DetallePartidoService>();
 
 var app = builder.Build();
 

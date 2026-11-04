@@ -27,13 +27,13 @@
                         {
                             <span class="cat-sh sm" aria-hidden="true">@t.Iniciales</span>
                         }
-                        @t.Nombre
+                        <a class="t-link" href="@Url.Action("Detalle", "Partidos", new { id = m.IdPartido })">@t.Nombre</a>
                         @if (t.Goles is int g) { <span class="sc">@g</span> }
                     </div>
                 }
             </div>
             <div class="right">
-                @if (m.MercadosExtra > 0) { <span class="more">+@m.MercadosExtra</span> }
+                @if (m.MercadosExtra > 0) { <a class="more" href="@Url.Action("Detalle", "Partidos", new { id = m.IdPartido })" title="Ver todos los mercados">+@m.MercadosExtra</a> }
                 <div class="odds">
                     @foreach (var c in m.Cuotas)
                     {

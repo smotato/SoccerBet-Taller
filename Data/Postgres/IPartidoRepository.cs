@@ -18,6 +18,18 @@ namespace CasaApuestas.Data.Postgres
         /// <summary>Partidos FINALIZADO con marcador de una liga y temporada (base de la tabla de posiciones).</summary>
         Task<IReadOnlyList<Partido>> ListarPartidosFinalizadosAsync(int idLiga, string temporada, CancellationToken ct = default);
 
+        /// <summary>Un partido por id, en cualquier estado (el detalle tambien muestra EN_VIVO y FINALIZADO). null si no existe.</summary>
+        Task<Partido?> ObtenerPartidoAsync(int idPartido, CancellationToken ct = default);
+
+        /// <summary>
+        /// TODAS las cuotas del partido, esten disponibles o no (con su campo Disponible): el detalle muestra los valores
+        /// aunque esten deshabilitadas. A diferencia del home, aqui no se filtra por disponible.
+        /// </summary>
+        Task<IReadOnlyList<Cuota>> ListarCuotasDePartidoAsync(int idPartido, CancellationToken ct = default);
+
+        /// <summary>Los mercados (hoy 3: 1X2, total de goles 2.5 y ambos anotan), ordenados por id.</summary>
+        Task<IReadOnlyList<Mercado>> ListarMercadosAsync(CancellationToken ct = default);
+
         Task<IReadOnlyList<Calendario>> ListarCalendariosAsync(IReadOnlyCollection<int> idsCalendario, CancellationToken ct = default);
     }
 }
