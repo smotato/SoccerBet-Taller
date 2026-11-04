@@ -34,6 +34,12 @@ namespace CasaApuestas.Data.Postgres
                 .ToListAsync(ct);
         }
 
+        public async Task<IReadOnlyList<Partido>> ListarPartidosFinalizadosAsync(int idLiga, string temporada, CancellationToken ct = default) =>
+            await _db.Partidos.AsNoTracking()
+                .Where(p => p.Estado == "FINALIZADO" && p.GolesLocal != null && p.GolesVisitante != null
+                            && _db.Calendarios.Any(c => c.IdCalendario == p.IdCalendario && c.IdLiga == idLiga && c.Temporada == temporada))
+                .ToListAsync(ct);
+
         public async Task<IReadOnlyList<Calendario>> ListarCalendariosAsync(IReadOnlyCollection<int> idsCalendario, CancellationToken ct = default)
         {
             if (idsCalendario.Count == 0) return Array.Empty<Calendario>();

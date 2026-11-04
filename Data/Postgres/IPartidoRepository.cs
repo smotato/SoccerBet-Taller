@@ -15,6 +15,9 @@ namespace CasaApuestas.Data.Postgres
         /// <summary>Cuotas disponibles (de mercados activos) de los partidos indicados, en UNA sola consulta.</summary>
         Task<IReadOnlyList<Cuota>> ListarCuotasDisponiblesAsync(IReadOnlyCollection<int> idsPartido, CancellationToken ct = default);
 
+        /// <summary>Partidos FINALIZADO con marcador de una liga y temporada (base de la tabla de posiciones).</summary>
+        Task<IReadOnlyList<Partido>> ListarPartidosFinalizadosAsync(int idLiga, string temporada, CancellationToken ct = default);
+
         Task<IReadOnlyList<Calendario>> ListarCalendariosAsync(IReadOnlyCollection<int> idsCalendario, CancellationToken ct = default);
     }
 }

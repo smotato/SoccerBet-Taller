@@ -21,9 +21,16 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
 - **Nunca** escribir contrasenas ni connection strings reales en `appsettings.json` ni en archivos del repo.
   En `appsettings.json` el valor de `DefaultConnection` queda vacio o con un placeholder; el real va en **user-secrets**.
 - Llaves de Wompi (`pub_test_`, `prv_test_`, `test_events_`, `test_integrity_`), credenciales de Firebase y de APIs: user-secrets.
-- **No usar el usuario `sa`.** La app usa el login dedicado `soccerbet_app`, con permisos minimos: `db_datareader`, `UPDATE` solo sobre
-  `dbo.Login` y `EXECUTE` sobre el esquema `dbo`. La app **no escribe directo** en `Saldo`, `Apuesta`, `Apuesta_Detalle` ni
+- **El usuario `sa` esta deshabilitado y no se usa en ninguna cadena de conexion.** En SQL Server la app usa el login dedicado
+  `soccerbet_app` (script `db/sqlserver/02_usuario_app.sql`), con permisos minimos: `db_datareader`, `UPDATE` solo sobre `dbo.Login` y
+  `EXECUTE` sobre el esquema `dbo`. La app **no escribe directo** en `Saldo`, `Apuesta`, `Apuesta_Detalle` ni
   `Movimiento_Saldo`: el dinero solo cambia a traves de procedimientos almacenados. Si falta un permiso, pedir el minimo necesario.
+- **MySQL**: la app tambien usa `soccerbet_app`, solo con `SELECT` sobre `soccerbet_catalogo.*` (`db/mysql/00_usuario.sql`). Nunca `root`.
+- **user-secrets** (clave -> contenido): `ConnectionStrings:DefaultConnection` (SQL Server, `User Id=soccerbet_app`),
+  `ConnectionStrings:MySql` (`User=soccerbet_app`), `Wompi:*` (llaves de pruebas y URLs del Dev Tunnel), `Firebase:ProjectId` y
+  `Firebase:CredentialsPath` (el JSON de la cuenta de servicio vive fuera del proyecto, en `C:\secretos\`).
+  Los scripts de `db/` solo llevan contrasenas **placeholder** (por ejemplo `CAMBIA_ESTA_CLAVE`); la clave real solo existe en user-secrets
+  y en la BD. `docker-compose.yml` lee las contrasenas del contenedor desde `.env` (ignorado por Git).
 - Git: un commit por cada paso que funcione. `.gitignore` debe excluir `bin/`, `obj/`, `.vs/`, `*.user`, `.env` y credenciales.
 
 ## Estado actual
@@ -33,10 +40,11 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
   (`SaldoService` + `WalletViewComponent`), loader global (`wwwroot/js/loader.js`), `_Layout` con cabecera y menu lateral.
 - Cabecera: sin sesion muestra "Iniciar sesion" / "Registrarse" (sin saldo ni Recargar); con sesion de cliente muestra saldo,
   boton Recargar (sin accion hasta RF12), iniciales y boton de salir.
-- Home publico (`[AllowAnonymous]`) con 3 partidos de ejemplo FIJOS en la vista: aun sin datos reales.
+- Home publico (`[AllowAnonymous]`) con datos reales (RF4): partidos y cuotas 1X2 de PostgreSQL + nombres/escudos de MySQL, unidos en
+  `PartidoService` (sin JOIN entre gestores, cache de 3 min para equipos). Las cuotas se ven pero aun no se pueden pulsar (RF9).
+  Tambien hay catalogo de equipos/plantillas (`/Catalogo/Equipos`) y tabla de posiciones calculada (`/Posiciones`).
   `[Authorize]` se usa solo en las paginas del cliente (apostar, mis apuestas, billetera) cuando existan.
-- Pendiente: recarga Wompi + Firestore (RF12), catalogo MySQL, home real con PostgreSQL, apostar, mis apuestas,
-  simulador y liquidacion, MongoDB, nube.
+- Pendiente: apostar, mis apuestas, simulador y liquidacion, MongoDB, nube.
 - Entidades `Cliente` y `Saldo`: SOLO LECTURA desde C# (siempre `AsNoTracking()`, nunca `SaveChanges` sobre ellas).
   Solo `Login` se actualiza desde C# (intentos fallidos, bloqueo, ultimo_login).
 - Mockups de referencia (HTML): `docs/mockups/login.html` y `docs/mockups/home.html`. Las vistas Razor ya los implementan;

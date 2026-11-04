@@ -31,3 +31,22 @@
 .cat-empty i{font-size:32px;color:var(--pink-d)}
 .cat-empty p{margin:8px 0 0}
 @media(max-width:640px){.cat-hero{flex-direction:column;align-items:flex-start}.cat-pl{grid-template-columns:36px 1fr}.cat-pl .cat-nat{grid-column:2}}
+
+/* Tabla de posiciones (estilo de equipos.html). Las filas que clasifican llevan una barra de color en el borde izquierdo. */
+.visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.pos-key{display:inline-block;width:4px;height:14px;background:var(--pink-d);border-radius:2px;margin-right:8px;vertical-align:-2px}
+.pos-wrap{overflow-x:auto}
+.pos-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.pos-table th{background:var(--pink-t);color:var(--pink-d);font-size:12px;font-weight:600;text-align:center;padding:8px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.pos-table td{text-align:center;padding:9px 6px;border-bottom:1px solid var(--line)}
+.pos-table tbody tr:last-child td{border-bottom:0}
+.pos-table tbody tr:hover{background:#FAFCFD}
+.pos-table .pos-n{width:44px;font:700 18px "Barlow Condensed",sans-serif;color:var(--pink-d);border-left:4px solid transparent}
+.pos-table th.pos-n{font:600 12px Barlow,sans-serif;color:var(--pink-d)}
+.pos-table tr.clasifica .pos-n{border-left-color:var(--pink-d)}
+.pos-table .pos-team{text-align:left;min-width:190px}
+.pos-table .pos-team a{display:flex;align-items:center;gap:10px;font-weight:600}
+.pos-table .pos-team a:hover span{text-decoration:underline}
+.pos-table .pos-team .cat-sh{width:28px;height:28px;font-size:11px}
+.pos-table .pos-pts{font:700 20px "Barlow Condensed",sans-serif}
+@media(max-width:640px){.pos-table .pos-opt{display:none}.pos-table .pos-team{min-width:140px}}

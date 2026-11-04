@@ -1,0 +1,66 @@
+@model CasaApuestas.Models.ViewModels.PosicionesViewModel
+@{
+    ViewData["Title"] = "Tabla de posiciones";
+}
+
+<div class="cat-crumbs">@(Model.Pais ?? "Colombia") / <b>@(Model.LigaNombre ?? "Liga BetPlay")</b>@if (!string.IsNullOrEmpty(Model.Temporada)) { <text> · Temporada @Model.Temporada</text> }</div>
+<h1 class="cat-title">Tabla de posiciones</h1>
+
+@if (Model.Error is not null)
+{
+    <div class="cat-empty" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><p>@Model.Error</p></div>
+}
+else if (Model.Filas.Count == 0)
+{
+    <div class="cat-empty"><i class="bi bi-table" aria-hidden="true"></i><p>Aún no hay equipos para mostrar la tabla.</p></div>
+}
+else
+{
+    <p class="cat-lead">
+        <span class="pos-key" aria-hidden="true"></span>Los @Model.Cuadrangulares primeros clasifican a cuadrangulares.
+    </p>
+    <section class="cat-grp">
+        <h2>@Model.LigaNombre<span>@Model.Temporada</span></h2>
+        <div class="pos-wrap">
+            <table class="pos-table">
+                <caption class="visually-hidden">Posiciones de la @Model.LigaNombre, temporada @Model.Temporada</caption>
+                <thead>
+                    <tr>
+                        <th scope="col" class="pos-n">#</th>
+                        <th scope="col" class="pos-team">Equipo</th>
+                        <th scope="col" title="Partidos jugados">PJ</th>
+                        <th scope="col" title="Ganados">PG</th>
+                        <th scope="col" title="Empatados">PE</th>
+                        <th scope="col" title="Perdidos">PP</th>
+                        <th scope="col" class="pos-opt" title="Goles a favor">GF</th>
+                        <th scope="col" class="pos-opt" title="Goles en contra">GC</th>
+                        <th scope="col" title="Diferencia de goles">DG</th>
+                        <th scope="col" title="Puntos">Pts</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var f in Model.Filas)
+                    {
+                        <tr class="@(f.Clasifica ? "clasifica" : "")">
+                            <td class="pos-n">@f.Posicion</td>
+                            <td class="pos-team">
+                                <a asp-controller="Catalogo" asp-action="Equipo" asp-route-id="@f.IdEquipo">
+                                    <partial name="_Escudo" model="@((f.EscudoUrl, f.Iniciales, f.Nombre, false))" />
+                                    <span>@f.Nombre</span>
+                                </a>
+                            </td>
+                            <td>@f.Jugados</td>
+                            <td>@f.Ganados</td>
+                            <td>@f.Empatados</td>
+                            <td>@f.Perdidos</td>
+                            <td class="pos-opt">@f.GolesFavor</td>
+                            <td class="pos-opt">@f.GolesContra</td>
+                            <td>@(f.Diferencia > 0 ? "+" + f.Diferencia : f.Diferencia.ToString())</td>
+                            <td class="pos-pts">@f.Puntos</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}

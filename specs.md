@@ -32,7 +32,7 @@ el simulador los hace avanzar (PROGRAMADO -> EN_VIVO -> FINALIZADO) y renueva la
   - Como `localhost` no es aceptado como `redirect-url` por Wompi, el retorno pasa por un Dev Tunnel y la accion publica `Puente`, que redirige a `localhost` (ver `CLAUDE.md`).
 
 ### Home y catalogo (MySQL + PostgreSQL)
-- [ ] RF4 Home segun `docs/mockups/home.html`: partidos en vivo y proximos de la Liga BetPlay con cuotas 1-X-2, leidos de las BD. Publico.
+- [x] RF4 Home segun `docs/mockups/home.html`: partidos en vivo y proximos de la Liga BetPlay con cuotas 1-X-2, leidos de las BD. Publico.
 - [ ] RF5 Menu lateral ocultable (3 rayitas) y filtros por pestanas.
 - [ ] RF6 Tabla de posiciones, equipos y jugadores por equipo (con escudo y foto).
 - [ ] RF7 Detalle de partido (solo lectura): eventos (goles, tarjetas) y alineaciones desde MongoDB y mercados disponibles.
