@@ -173,6 +173,9 @@ builder.Services.AddSingleton<CasaApuestas.Data.Postgres.ISimuladorRepository, C
 builder.Services.AddSingleton<CasaApuestas.Data.Postgres.BloqueoSimulador>();
 builder.Services.AddSingleton<CasaApuestas.Data.Mongo.IEventoPartidoRepository, CasaApuestas.Data.Mongo.EventoPartidoRepository>();
 builder.Services.AddSingleton<CasaApuestas.Services.Simulador.IJugadoresCache, CasaApuestas.Services.Simulador.JugadoresCache>();
+builder.Services.AddSingleton<CasaApuestas.Data.SqlServer.ILiquidacionRepository, CasaApuestas.Data.SqlServer.LiquidacionRepository>();
+builder.Services.AddSingleton<CasaApuestas.Services.Simulador.LiquidadorPartidos>();
+builder.Services.AddSingleton<CasaApuestas.Services.Simulador.IGeneradorJornada, CasaApuestas.Services.Simulador.GeneradorJornada>();
 builder.Services.AddSingleton<CasaApuestas.Services.Simulador.SimuladorPartidos>();
 builder.Services.AddHostedService<CasaApuestas.Background.SimuladorHostedService>();
 

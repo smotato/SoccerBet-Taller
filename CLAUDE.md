@@ -62,7 +62,12 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
   (`BloqueoSimulador`) asegura UNA sola instancia simulando. Los EN_VIVO se retoman desde su minuto guardado (NULL -> `MinutoSinDato`=35).
   `Simulador:AdelantarPartidosProgramados` (true solo en Development) adelanta el siguiente partido para que la demo no quede quieta.
   OJO: en cuanto la app corre con `Simulador:Habilitado=true` simula sobre la BD configurada; para pruebas usar una copia de Postgres.
-- Pendiente (fase 6): liquidacion y reconciliacion (E2), cuotas en vivo (E3), modo demostracion (E4); apuestas en vivo y cash out (6b);
+- Liquidacion (RF14, etapa E2) hecha: al finalizar un partido el simulador envia `(id_cuota, ganadora)` a `sp_ResolverApuestasPartido`
+  (`Services/Simulador/LiquidadorPartidos`, `Data/SqlServer/LiquidacionRepository`). Una RECONCILIACION periodica
+  (`Simulador:IntervaloReconciliacionSegundos`) busca selecciones PENDIENTE de partidos FINALIZADO (reenvia el resultado) o SUSPENDIDO
+  (`sp_AnularApuestasPartido`); es segura de repetir (patron saga). Cuando no quedan PROGRAMADO, `GeneradorJornada` crea la siguiente
+  jornada (round-robin de los equipos de MySQL, estadio del local, 7 cuotas por partido con Poisson y `Simulador:MargenCasa`).
+- Pendiente (fase 6): cuotas en vivo (E3), modo demostracion (E4); apuestas en vivo y cash out (6b);
   alineaciones y detalle de eventos (RF7); nube.
 - Entidades `Cliente` y `Saldo`: SOLO LECTURA desde C# (siempre `AsNoTracking()`, nunca `SaveChanges` sobre ellas).
   Solo `Login` se actualiza desde C# (intentos fallidos, bloqueo, ultimo_login).

@@ -10,6 +10,18 @@ namespace CasaApuestas.Data.Postgres
     /// <summary>Cuotas 1X2 INICIALES de un partido (base para repartir los goles esperados).</summary>
     public record Cuotas1X2(decimal? Local, decimal? Empate, decimal? Visitante);
 
+    /// <summary>Ultima jornada creada (liga, temporada y numero): la siguiente continua desde aqui.</summary>
+    public record UltimaJornada(int IdLiga, string Temporada, int Numero);
+
+    public record MercadoSim(int IdMercado, string Nombre);
+
+    public record NuevaCuota(int IdMercado, string Seleccion, string CodigoSeleccion, decimal Cuota);
+
+    public record NuevoPartido(int IdEstadio, int IdEquipoLocal, int IdEquipoVisitante, DateTime FechaHora, IReadOnlyList<NuevaCuota> Cuotas);
+
+    /// <summary>Una jornada completa a crear: calendario + partidos + cuotas, todo en una transaccion.</summary>
+    public record NuevaJornada(int IdLiga, string Temporada, int Numero, DateTime FechaInicio, DateTime FechaFin, IReadOnlyList<NuevoPartido> Partidos);
+
     /// <summary>
     /// Escrituras y lecturas del simulador sobre PostgreSQL, con SQL explicito (PartidosDbContext sigue siendo de solo lectura).
     /// Cada transicion es IDEMPOTENTE: un UPDATE con la condicion de estado en el WHERE; devuelve false si otro ya la hizo.
@@ -38,6 +50,27 @@ namespace CasaApuestas.Data.Postgres
         /// estaba finalizado/anulado (la funcion lo rechaza) y entonces no hay nada que hacer.
         /// </summary>
         Task<IReadOnlyList<ResultadoCuotaSim>?> FinalizarAsync(int idPartido, int golesLocal, int golesVisitante, CancellationToken ct = default);
+
+        // ---- E2: liquidacion y nueva jornada ----
+
+        /// <summary>Resultado (ganadora o no) de las cuotas indicadas que pertenecen a partidos FINALIZADO. Las de otros partidos no se devuelven.</summary>
+        Task<IReadOnlyList<ResultadoCuotaSim>> ObtenerResultadosFinalizadosAsync(IReadOnlyCollection<int> idsCuota, CancellationToken ct = default);
+
+        /// <summary>De las cuotas indicadas, las que pertenecen a partidos SUSPENDIDO (anulados).</summary>
+        Task<IReadOnlyList<int>> ObtenerCuotasDePartidosSuspendidosAsync(IReadOnlyCollection<int> idsCuota, CancellationToken ct = default);
+
+        Task<int> ContarProgramadosAsync(CancellationToken ct = default);
+
+        Task<UltimaJornada?> ObtenerUltimaJornadaAsync(CancellationToken ct = default);
+
+        Task<IReadOnlyList<MercadoSim>> ListarMercadosAsync(CancellationToken ct = default);
+
+        /// <summary>
+        /// Crea la jornada (calendario PROGRAMADA + partidos PROGRAMADO + cuotas con cuota_inicial) en UNA transaccion.
+        /// Devuelve los ids de partido creados, o null si esa jornada ya existia (otra instancia se adelanto: el UNIQUE de
+        /// calendario lo impide y no se crea nada).
+        /// </summary>
+        Task<IReadOnlyList<int>?> CrearJornadaAsync(NuevaJornada jornada, CancellationToken ct = default);
 
         Task<IReadOnlyDictionary<int, Cuotas1X2>> ObtenerCuotasIniciales1X2Async(IReadOnlyCollection<int> idsPartido, CancellationToken ct = default);
     }

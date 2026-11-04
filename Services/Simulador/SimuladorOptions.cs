@@ -55,10 +55,26 @@ namespace CasaApuestas.Services.Simulador
         /// </summary>
         public bool AdelantarPartidosProgramados { get; set; }
 
+        // ---- E2: reconciliacion de liquidaciones y nueva jornada ----
+
+        /// <summary>Cada cuantos segundos se buscan apuestas PENDIENTE de partidos ya FINALIZADO o SUSPENDIDO para liquidarlas.</summary>
+        public int IntervaloReconciliacionSegundos { get; set; }
+
+        /// <summary>Minutos entre que se crea una jornada nueva y el primer partido de la jornada.</summary>
+        public int MinutosHastaPrimerPartido { get; set; }
+
+        /// <summary>Minutos entre un partido y el siguiente dentro de la jornada nueva.</summary>
+        public int SeparacionPartidosMinutos { get; set; }
+
+        /// <summary>Margen de la casa en las cuotas que se generan (0,08 = 8 %). Tambien lo usaran las cuotas en vivo.</summary>
+        public double MargenCasa { get; set; }
+
         public static bool EsValida(SimuladorOptions o) =>
             o.IntervaloCicloSegundos > 0 && o.DuracionRealPartidoSegundos > 0 && o.MinutosPartido > 0
             && o.MaxPartidosEnVivo > 0 && o.EscalonInicioSegundos >= 0 && o.GolesEsperadosPorPartido > 0
             && o.SesgoCuotas is >= 0 and <= 1 && o.TarjetasAmarillasEsperadas >= 0
-            && o.ProbTarjetaRojaPorPartido is >= 0 and <= 1 && o.MinutoSinDato >= 0 && o.MinutoSinDato < o.MinutosPartido;
+            && o.ProbTarjetaRojaPorPartido is >= 0 and <= 1 && o.MinutoSinDato >= 0 && o.MinutoSinDato < o.MinutosPartido
+            && o.IntervaloReconciliacionSegundos > 0 && o.MinutosHastaPrimerPartido >= 0 && o.SeparacionPartidosMinutos > 0
+            && o.MargenCasa is >= 0 and < 0.5;
     }
 }

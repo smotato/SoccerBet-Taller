@@ -27,6 +27,8 @@ namespace CasaApuestas.Services.Simulador
         private readonly ISimuladorRepository _repo;
         private readonly IEventoPartidoRepository _eventos;
         private readonly IJugadoresCache _jugadores;
+        private readonly LiquidadorPartidos _liquidador;
+        private readonly IGeneradorJornada _jornadas;
         private readonly SimuladorOptions _opc;
         private readonly TimeProvider _reloj;
         private readonly ILogger<SimuladorPartidos> _log;
@@ -36,6 +38,8 @@ namespace CasaApuestas.Services.Simulador
         private readonly object _candado = new();
         private long _ultimoInicio;
         private bool _huboInicio;
+        private long _ultimaReconciliacion;
+        private bool _huboReconciliacion;
 
         /// <summary>Estado en memoria de un partido en vivo. Solo guarda lo que no esta en la BD (acumuladores y tarjetas).</summary>
         private sealed class PartidoVivo
@@ -59,11 +63,14 @@ namespace CasaApuestas.Services.Simulador
         }
 
         public SimuladorPartidos(ISimuladorRepository repo, IEventoPartidoRepository eventos, IJugadoresCache jugadores,
+            LiquidadorPartidos liquidador, IGeneradorJornada jornadas,
             IOptions<SimuladorOptions> opciones, TimeProvider reloj, ILogger<SimuladorPartidos> log)
         {
             _repo = repo;
             _eventos = eventos;
             _jugadores = jugadores;
+            _liquidador = liquidador;
+            _jornadas = jornadas;
             _opc = opciones.Value;
             _reloj = reloj;
             _log = log;
@@ -93,6 +100,39 @@ namespace CasaApuestas.Services.Simulador
             }
 
             await VaciarEventosAsync(ct);
+            await RenovarJornadaAsync(ahora, ct);
+            await ReconciliarSiCorrespondeAsync(ct);
+        }
+
+        // ---- 6. Nueva jornada y reconciliacion (E2) ---------------------------------------------------------------
+
+        private async Task RenovarJornadaAsync(DateTime ahora, CancellationToken ct)
+        {
+            try
+            {
+                await _jornadas.CrearSiNoHayProgramadosAsync(ahora, ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _log.LogError(ex, "No se pudo crear la siguiente jornada; se reintentara en el siguiente ciclo.");
+            }
+        }
+
+        private async Task ReconciliarSiCorrespondeAsync(CancellationToken ct)
+        {
+            if (_huboReconciliacion && _reloj.GetElapsedTime(_ultimaReconciliacion).TotalSeconds < _opc.IntervaloReconciliacionSegundos) return;
+            _huboReconciliacion = true;
+            _ultimaReconciliacion = _reloj.GetTimestamp();
+            try
+            {
+                var cambiadas = await _liquidador.ReconciliarAsync(ct);
+                if (cambiadas > 0) _log.LogInformation("Reconciliacion: {N} apuestas liquidadas.", cambiadas);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                // SQL Server o PostgreSQL caidos: no pasa nada, se vuelve a intentar en el siguiente intervalo.
+                _log.LogError(ex, "Fallo la reconciliacion de liquidaciones; se reintentara.");
+            }
         }
 
         // ---- 1. Sincronizar con la BD ------------------------------------------------------------------------------
@@ -295,7 +335,17 @@ namespace CasaApuestas.Services.Simulador
             Encolar(Evento(p.Id, "FIN", _opc.MinutosPartido, null, null, $"Final del partido: {p.GolesLocal}-{p.GolesVisitante}"));
             _log.LogInformation("Partido {IdPartido} FINALIZADO {L}-{V}; {N} cuotas con resultado ({G} ganadoras).",
                 p.Id, p.GolesLocal, p.GolesVisitante, resultados.Count, resultados.Count(r => r.Ganadora));
-            // E2: aqui se enviara (id_cuota, ganadora) a sp_ResolverApuestasPartido para liquidar las apuestas.
+
+            // Liquidacion inmediata. Si falla (SQL Server caido...) el partido ya esta FINALIZADO y la reconciliacion periodica
+            // reenviara el resultado: nunca se pierde ni se duplica un pago.
+            try
+            {
+                await _liquidador.LiquidarPartidoAsync(p.Id, resultados, ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _log.LogError(ex, "No se pudo liquidar el partido {IdPartido} al terminar; lo hara la reconciliacion.", p.Id);
+            }
         }
 
         // ---- 5. Eventos hacia MongoDB ----------------------------------------------------------------------------

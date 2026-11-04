@@ -131,6 +131,114 @@ namespace CasaApuestas.Data.Postgres
             return resultado;
         }
 
+        public async Task<IReadOnlyList<ResultadoCuotaSim>> ObtenerResultadosFinalizadosAsync(IReadOnlyCollection<int> idsCuota, CancellationToken ct = default)
+        {
+            var lista = new List<ResultadoCuotaSim>();
+            if (idsCuota.Count == 0) return lista;
+            // fn_cuota_ganadora devuelve NULL si el partido no esta finalizado; aqui solo se piden los FINALIZADO.
+            await using var cmd = _fuente.CreateCommand(
+                @"SELECT c.id_cuota, COALESCE(fn_cuota_ganadora(c.id_cuota), FALSE)
+                  FROM cuota c JOIN partido p ON p.id_partido = c.id_partido
+                  WHERE c.id_cuota = ANY(@ids) AND p.estado = 'FINALIZADO'");
+            cmd.Parameters.AddWithValue("ids", idsCuota.ToArray());
+            await using var r = await cmd.ExecuteReaderAsync(ct);
+            while (await r.ReadAsync(ct)) lista.Add(new ResultadoCuotaSim(r.GetInt32(0), r.GetBoolean(1)));
+            return lista;
+        }
+
+        public async Task<IReadOnlyList<int>> ObtenerCuotasDePartidosSuspendidosAsync(IReadOnlyCollection<int> idsCuota, CancellationToken ct = default)
+        {
+            var lista = new List<int>();
+            if (idsCuota.Count == 0) return lista;
+            await using var cmd = _fuente.CreateCommand(
+                @"SELECT c.id_cuota FROM cuota c JOIN partido p ON p.id_partido = c.id_partido
+                  WHERE c.id_cuota = ANY(@ids) AND p.estado = 'SUSPENDIDO'");
+            cmd.Parameters.AddWithValue("ids", idsCuota.ToArray());
+            await using var r = await cmd.ExecuteReaderAsync(ct);
+            while (await r.ReadAsync(ct)) lista.Add(r.GetInt32(0));
+            return lista;
+        }
+
+        public async Task<int> ContarProgramadosAsync(CancellationToken ct = default)
+        {
+            await using var cmd = _fuente.CreateCommand("SELECT count(*) FROM partido WHERE estado = 'PROGRAMADO'");
+            return Convert.ToInt32(await cmd.ExecuteScalarAsync(ct));
+        }
+
+        public async Task<UltimaJornada?> ObtenerUltimaJornadaAsync(CancellationToken ct = default)
+        {
+            await using var cmd = _fuente.CreateCommand(
+                "SELECT id_liga, temporada, numero_jornada FROM calendario ORDER BY id_calendario DESC LIMIT 1");
+            await using var r = await cmd.ExecuteReaderAsync(ct);
+            return await r.ReadAsync(ct) ? new UltimaJornada(r.GetInt32(0), r.GetString(1), r.GetInt32(2)) : null;
+        }
+
+        public async Task<IReadOnlyList<MercadoSim>> ListarMercadosAsync(CancellationToken ct = default)
+        {
+            var lista = new List<MercadoSim>();
+            await using var cmd = _fuente.CreateCommand("SELECT id_mercado, nombre FROM mercado WHERE activo ORDER BY id_mercado");
+            await using var r = await cmd.ExecuteReaderAsync(ct);
+            while (await r.ReadAsync(ct)) lista.Add(new MercadoSim(r.GetInt32(0), r.GetString(1)));
+            return lista;
+        }
+
+        public async Task<IReadOnlyList<int>?> CrearJornadaAsync(NuevaJornada j, CancellationToken ct = default)
+        {
+            await using var con = await _fuente.OpenConnectionAsync(ct);
+            await using var tx = await con.BeginTransactionAsync(ct);
+
+            int idCalendario;
+            await using (var cmd = new NpgsqlCommand(
+                @"INSERT INTO calendario (id_liga, numero_jornada, temporada, fecha_inicio, fecha_fin, estado)
+                  VALUES (@liga, @num, @temp, @ini, @fin, 'PROGRAMADA')
+                  ON CONFLICT (id_liga, temporada, numero_jornada) DO NOTHING
+                  RETURNING id_calendario", con, tx))
+            {
+                cmd.Parameters.AddWithValue("liga", j.IdLiga);
+                cmd.Parameters.AddWithValue("num", j.Numero);
+                cmd.Parameters.AddWithValue("temp", j.Temporada);
+                cmd.Parameters.AddWithValue("ini", DateOnly.FromDateTime(j.FechaInicio));
+                cmd.Parameters.AddWithValue("fin", DateOnly.FromDateTime(j.FechaFin));
+                var id = await cmd.ExecuteScalarAsync(ct);
+                if (id is null) return null;          // esa jornada ya existe: otra instancia la creo primero
+                idCalendario = Convert.ToInt32(id);
+            }
+
+            var ids = new List<int>();
+            foreach (var p in j.Partidos)
+            {
+                int idPartido;
+                await using (var cmd = new NpgsqlCommand(
+                    @"INSERT INTO partido (id_calendario, id_estadio, id_equipo_local, id_equipo_visitante, fecha_hora, estado)
+                      VALUES (@cal, @est, @loc, @vis, @fecha, 'PROGRAMADO') RETURNING id_partido", con, tx))
+                {
+                    cmd.Parameters.AddWithValue("cal", idCalendario);
+                    cmd.Parameters.AddWithValue("est", p.IdEstadio);
+                    cmd.Parameters.AddWithValue("loc", p.IdEquipoLocal);
+                    cmd.Parameters.AddWithValue("vis", p.IdEquipoVisitante);
+                    cmd.Parameters.AddWithValue("fecha", p.FechaHora);
+                    idPartido = Convert.ToInt32(await cmd.ExecuteScalarAsync(ct));
+                }
+                ids.Add(idPartido);
+
+                foreach (var c in p.Cuotas)
+                {
+                    await using var cmd = new NpgsqlCommand(
+                        @"INSERT INTO cuota (id_partido, id_mercado, seleccion, codigo_seleccion, cuota, disponible, cuota_inicial)
+                          VALUES (@par, @mer, @sel, @cod, @cuota, TRUE, @cuota)", con, tx);
+                    cmd.Parameters.AddWithValue("par", idPartido);
+                    cmd.Parameters.AddWithValue("mer", c.IdMercado);
+                    cmd.Parameters.AddWithValue("sel", c.Seleccion);
+                    cmd.Parameters.AddWithValue("cod", c.CodigoSeleccion);
+                    cmd.Parameters.AddWithValue("cuota", c.Cuota);
+                    await cmd.ExecuteNonQueryAsync(ct);
+                }
+            }
+
+            await tx.CommitAsync(ct);
+            return ids;
+        }
+
         private static async Task<IReadOnlyList<PartidoSim>> LeerPartidosAsync(NpgsqlCommand cmd, CancellationToken ct)
         {
             var lista = new List<PartidoSim>();
