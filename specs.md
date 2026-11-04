@@ -60,7 +60,7 @@ ser **sencillas o combinadas**. Ver "Reglas de apuestas" mas abajo.
   - Los tiempos dependen de la velocidad de simulacion y son configurables: duracion de un partido, minuto de cierre (85), pausa tras gol e intervalo de actualizacion (~5 s, menor que la pausa tras gol).
   - **El simulador nunca suspende ni anula partidos por su cuenta.**
 - [x] RF18 Modo demostracion (solo `Development`): en el detalle de partido, recuadro con "Terminar partido ahora" y "Anular partido". Anular pasa el partido a SUSPENDIDO ("Anulado"), cierra mercados y devuelve: sencillas ANULADA con devolucion del importe; en combinadas la seleccion sale y la cuota total se recalcula; si todas quedan anuladas, se devuelve el importe.
-- [ ] RF14 Liquidacion automatica: al finalizar un partido, resolver sus selecciones (GANADA / PERDIDA) y, segun el tipo de apuesta, la apuesta completa; acreditar el premio al saldo del cliente, con su movimiento de saldo.
+- [x] RF14 Liquidacion automatica: al finalizar un partido, resolver sus selecciones (GANADA / PERDIDA) y, segun el tipo de apuesta, la apuesta completa; acreditar el premio al saldo del cliente, con su movimiento de saldo.
   - Sencilla: GANADA o PERDIDA segun su unica seleccion.
   - Combinada: PERDIDA en cuanto una seleccion pierde; GANADA solo cuando **todas** las selecciones ganan; el premio es importe x cuota total. Una seleccion ANULADA (partido suspendido) sale de la combinada (su cuota cuenta como 1.00); si todas quedan anuladas, la apuesta pasa a ANULADA y se devuelve el importe.
   - Debe poder reintentarse sin duplicar pagos (reconciliacion periodica).
