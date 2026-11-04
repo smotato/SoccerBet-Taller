@@ -53,13 +53,13 @@ ser **sencillas o combinadas**. Ver "Reglas de apuestas" mas abajo.
 - [x] RF10 "Mis apuestas": historial con estado (PENDIENTE / GANADA / PERDIDA / ANULADA / CASHOUT), las selecciones de cada combinada con su estado individual, y movimientos de saldo.
 
 ### Simulacion y liquidacion (PostgreSQL + MongoDB + SQL Server)
-- [ ] RF13 Simulador automatico de partidos (servicio en segundo plano): inicia cada partido a su hora (EN_VIVO), simula el juego con tiempo acelerado, genera goles/eventos en MongoDB y lo finaliza con su marcador. Cuando se acaban los partidos programados, crea la siguiente jornada.
+- [x] RF13 Simulador automatico de partidos (servicio en segundo plano): inicia cada partido a su hora (EN_VIVO), simula el juego con tiempo acelerado, genera goles/eventos en MongoDB y lo finaliza con su marcador. Cuando se acaban los partidos programados, crea la siguiente jornada.
   - **Cuotas en vivo**: mientras el partido esta EN_VIVO, el simulador recalcula las cuotas cada pocos segundos segun marcador y minuto (modelo de probabilidad sencillo, margen de la casa fijo, cuota minima 1.01). Si un resultado queda casi decidido, su cuota se marca no disponible.
   - **Cierre de mercados**: las cuotas se suspenden unos segundos despues de cada gol y se cierran del todo a partir del minuto 85 simulado, hasta el final del partido. Al finalizar quedan no disponibles.
   - El minuto simulado y el marcador son visibles en el home y en el detalle del partido (la pagina se actualiza cada pocos segundos).
   - Los tiempos dependen de la velocidad de simulacion y son configurables: duracion de un partido, minuto de cierre (85), pausa tras gol e intervalo de actualizacion (~5 s, menor que la pausa tras gol).
   - **El simulador nunca suspende ni anula partidos por su cuenta.**
-- [ ] RF18 Modo demostracion (solo `Development`): en el detalle de partido, recuadro con "Terminar partido ahora" y "Anular partido". Anular pasa el partido a SUSPENDIDO ("Anulado"), cierra mercados y devuelve: sencillas ANULADA con devolucion del importe; en combinadas la seleccion sale y la cuota total se recalcula; si todas quedan anuladas, se devuelve el importe.
+- [x] RF18 Modo demostracion (solo `Development`): en el detalle de partido, recuadro con "Terminar partido ahora" y "Anular partido". Anular pasa el partido a SUSPENDIDO ("Anulado"), cierra mercados y devuelve: sencillas ANULADA con devolucion del importe; en combinadas la seleccion sale y la cuota total se recalcula; si todas quedan anuladas, se devuelve el importe.
 - [ ] RF14 Liquidacion automatica: al finalizar un partido, resolver sus selecciones (GANADA / PERDIDA) y, segun el tipo de apuesta, la apuesta completa; acreditar el premio al saldo del cliente, con su movimiento de saldo.
   - Sencilla: GANADA o PERDIDA segun su unica seleccion.
   - Combinada: PERDIDA en cuanto una seleccion pierde; GANADA solo cuando **todas** las selecciones ganan; el premio es importe x cuota total. Una seleccion ANULADA (partido suspendido) sale de la combinada (su cuota cuenta como 1.00); si todas quedan anuladas, la apuesta pasa a ANULADA y se devuelve el importe.

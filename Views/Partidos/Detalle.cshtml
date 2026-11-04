@@ -1,4 +1,5 @@
 @model CasaApuestas.Models.ViewModels.DetallePartidoViewModel
+@inject Microsoft.Extensions.Hosting.IHostEnvironment Entorno
 @using System.Globalization
 @{
     ViewData["Title"] = Model.Error is null ? Model.TextoPartido : "Partido";
@@ -45,6 +46,31 @@ else
             </div>
         </div>
     </div>
+
+    @* Modo demostracion (RF18): SOLO en Development (el controlador tambien responde 404 fuera de Development). *@
+    @if (Entorno.IsDevelopment())
+    {
+        <div class="ap-demo" role="region" aria-label="Modo demostración">
+            <b><i class="bi bi-wrench-adjustable" aria-hidden="true"></i> Modo demostración</b>
+            <span class="fine">(solo visible en Development; los partidos simulados nunca se anulan solos)</span>
+            @if (TempData["Demo"] is string demo)
+            {
+                <div class="ap-msg @((TempData["DemoOk"] as bool? ?? false) ? "ok" : "warn")" role="status">@demo</div>
+            }
+            @if (Model.Programado || Model.EnVivo)
+            {
+                <div class="ap-demo-acciones">
+                    <form asp-controller="Partidos" asp-action="DemoTerminar" asp-route-id="@Model.IdPartido" method="post" data-loader>
+                        <button type="submit" class="btn">Terminar partido ahora</button>
+                    </form>
+                    <form asp-controller="Partidos" asp-action="DemoAnular" asp-route-id="@Model.IdPartido" method="post" data-loader
+                          onsubmit="return confirm('¿Anular este partido? Sus apuestas sencillas se devuelven y las selecciones salen de las combinadas.');">
+                        <button type="submit" class="btn ap-danger">Anular partido</button>
+                    </form>
+                </div>
+            }
+        </div>
+    }
 
     @if (!Model.Programado)
     {

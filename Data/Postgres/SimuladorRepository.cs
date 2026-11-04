@@ -131,6 +131,34 @@ namespace CasaApuestas.Data.Postgres
             return resultado;
         }
 
+        public async Task<PartidoConEstado?> ObtenerPartidoAsync(int idPartido, CancellationToken ct = default)
+        {
+            await using var cmd = _fuente.CreateCommand($"SELECT {Columnas}, estado FROM partido WHERE id_partido = @id");
+            cmd.Parameters.AddWithValue("id", idPartido);
+            await using var r = await cmd.ExecuteReaderAsync(ct);
+            if (!await r.ReadAsync(ct)) return null;
+            var p = new PartidoSim(r.GetInt32(0), r.GetInt32(1), r.GetInt32(2), r.GetInt32(3), r.GetDateTime(4),
+                r.IsDBNull(5) ? null : r.GetInt32(5), r.IsDBNull(6) ? null : r.GetInt32(6), r.IsDBNull(7) ? null : r.GetInt32(7));
+            return new PartidoConEstado(p, r.GetString(8));
+        }
+
+        public async Task<IReadOnlyList<int>?> AnularPartidoAsync(int idPartido, CancellationToken ct = default)
+        {
+            try
+            {
+                await using var cmd = _fuente.CreateCommand("SELECT id_cuota FROM anular_partido(@id)");
+                cmd.Parameters.AddWithValue("id", idPartido);
+                var lista = new List<int>();
+                await using var r = await cmd.ExecuteReaderAsync(ct);
+                while (await r.ReadAsync(ct)) lista.Add(r.GetInt32(0));
+                return lista;
+            }
+            catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.RaiseException)
+            {
+                return null;     // "El partido no existe o ya fue finalizado o anulado"
+            }
+        }
+
         public async Task<IReadOnlyList<CuotaPartidoSim>> ObtenerCuotasBaseAsync(int idPartido, CancellationToken ct = default)
         {
             var lista = new List<CuotaPartidoSim>();

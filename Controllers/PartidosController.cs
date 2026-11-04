@@ -1,5 +1,7 @@
 using CasaApuestas.Models.ViewModels;
+using CasaApuestas.Infraestructura;
 using CasaApuestas.Services;
+using CasaApuestas.Services.Simulador;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,13 +22,34 @@ namespace CasaApuestas.Controllers
 
         private readonly IDetallePartidoService _servicio;
         private readonly IEstadoVivoService _estadoVivo;
+        private readonly SimuladorPartidos _simulador;
         private readonly ILogger<PartidosController> _log;
 
-        public PartidosController(IDetallePartidoService servicio, IEstadoVivoService estadoVivo, ILogger<PartidosController> log)
+        public PartidosController(IDetallePartidoService servicio, IEstadoVivoService estadoVivo, SimuladorPartidos simulador, ILogger<PartidosController> log)
         {
             _servicio = servicio;
             _estadoVivo = estadoVivo;
+            _simulador = simulador;
             _log = log;
+        }
+
+        // ---- Modo demostracion (RF18): SOLO en Development. Fuera de Development responden 404, como si no existieran. ----
+
+        // POST /Partidos/DemoTerminar/12
+        [HttpPost, ValidateAntiForgeryToken, SoloDevelopment]
+        public async Task<IActionResult> DemoTerminar(int id, CancellationToken ct) =>
+            Demo(id, await _simulador.TerminarAhoraAsync(id, ct));
+
+        // POST /Partidos/DemoAnular/12
+        [HttpPost, ValidateAntiForgeryToken, SoloDevelopment]
+        public async Task<IActionResult> DemoAnular(int id, CancellationToken ct) =>
+            Demo(id, await _simulador.AnularAsync(id, ct));
+
+        private IActionResult Demo(int id, SimuladorPartidos.ResultadoDemo r)
+        {
+            TempData["Demo"] = r.Mensaje;
+            TempData["DemoOk"] = r.Exito;
+            return RedirectToAction(nameof(Detalle), new { id });
         }
 
         // GET /Partidos/Estado?ids=11,12   (JSON; publico; solo lectura)

@@ -34,6 +34,15 @@ namespace CasaApuestas.Services.Simulador
                 idPartido, resumen.Ganadas, resumen.Perdidas, resumen.Anuladas);
         }
 
+        /// <summary>Envia a sp_AnularApuestasPartido todas las cuotas de un partido anulado.</summary>
+        public async Task<ResumenLiquidacion> AnularPartidoAsync(int idPartido, IReadOnlyCollection<int> idsCuota, CancellationToken ct)
+        {
+            var resumen = await _sql.AnularAsync(idsCuota, ct);
+            _log.LogInformation("Anulacion del partido {IdPartido}: {Ganadas} ganadas, {Perdidas} perdidas, {Anuladas} apuestas anuladas.",
+                idPartido, resumen.Ganadas, resumen.Perdidas, resumen.Anuladas);
+            return resumen;
+        }
+
         /// <summary>Busca y liquida lo que haya quedado pendiente de partidos ya FINALIZADO o SUSPENDIDO. Devuelve cuantas apuestas cambiaron.</summary>
         public async Task<int> ReconciliarAsync(CancellationToken ct)
         {

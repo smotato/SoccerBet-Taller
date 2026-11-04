@@ -36,6 +36,8 @@ namespace CasaApuestas.Services.Simulador
         private readonly Dictionary<int, PartidoVivo> _vivos = new();
         private readonly List<EventoPartidoDocumento> _pendientes = new();
         private readonly object _candado = new();
+        // Exclusion mutua EN ESTE PROCESO entre el ciclo del simulador y las acciones del modo demostracion (que llegan por HTTP).
+        private readonly SemaphoreSlim _exclusion = new(1, 1);
         private long _ultimoInicio;
         private bool _huboInicio;
         private long _ultimaReconciliacion;
@@ -83,6 +85,13 @@ namespace CasaApuestas.Services.Simulador
 
         public async Task EjecutarCicloAsync(CancellationToken ct)
         {
+            await _exclusion.WaitAsync(ct);
+            try { await CicloAsync(ct); }
+            finally { _exclusion.Release(); }
+        }
+
+        private async Task CicloAsync(CancellationToken ct)
+        {
             var ahora = FechaColombia.Ahora(_reloj);
 
             await SincronizarAsync(await _repo.ListarEnVivoAsync(ct), ct);
@@ -105,6 +114,90 @@ namespace CasaApuestas.Services.Simulador
             await VaciarEventosAsync(ct);
             await RenovarJornadaAsync(ahora, ct);
             await ReconciliarSiCorrespondeAsync(ct);
+        }
+
+        // ---- Modo demostracion (E4) ------------------------------------------------------------------------------
+        // Solo se invocan desde PartidosController, y ese controlador responde 404 fuera de Development. El simulador NUNCA
+        // anula ni termina partidos por su cuenta: estas acciones son las unicas que lo hacen, a peticion de quien demuestra.
+
+        public sealed record ResultadoDemo(bool Exito, string Mensaje);
+
+        /// <summary>
+        /// Termina el partido AHORA: simula de golpe los minutos que faltan (mismos goles y tarjetas al azar de siempre, con sus
+        /// eventos en MongoDB) y lo finaliza con registrar_resultado_partido + liquidacion. Si estaba PROGRAMADO, lo inicia primero.
+        /// </summary>
+        public async Task<ResultadoDemo> TerminarAhoraAsync(int idPartido, CancellationToken ct)
+        {
+            await _exclusion.WaitAsync(ct);
+            try
+            {
+                var info = await _repo.ObtenerPartidoAsync(idPartido, ct);
+                if (info is null) return new(false, "El partido no existe.");
+                if (info.Estado is not ("PROGRAMADO" or "EN_VIVO"))
+                    return new(false, $"El partido ya está {info.Estado} y no se puede terminar.");
+
+                var ahora = FechaColombia.Ahora(_reloj);
+                var fila = info.Partido;
+                PartidoVivo p;
+                if (info.Estado == "PROGRAMADO")
+                {
+                    if (fila.FechaHora > ahora && !await _repo.AdelantarAsync(idPartido, ahora, ct))
+                        return new(false, "El partido cambió de estado mientras se procesaba la acción.");
+                    if (!await _repo.IniciarAsync(idPartido, fila.IdCalendario, ahora, ct))
+                        return new(false, "El partido cambió de estado mientras se procesaba la acción.");
+                    p = await CrearAsync(fila, 0, 0, 0, ct);
+                    Encolar(Evento(idPartido, "INICIO", 0, null, null, "Comienza el partido"));
+                }
+                else
+                {
+                    var minuto = fila.Minuto ?? _opc.MinutoSinDato;
+                    if (fila.Minuto is null) await _repo.FijarMinutoSiNuloAsync(idPartido, minuto, ct);
+                    p = await CrearAsync(fila, minuto, fila.GolesLocal ?? 0, fila.GolesVisitante ?? 0, ct);
+                }
+
+                var nuevos = new List<EventoPartidoDocumento>();
+                while (p.Minuto < _opc.MinutosPartido)
+                {
+                    p.Minuto++;
+                    GenerarEventosDelMinuto(p, nuevos);
+                }
+                if (!await _repo.ActualizarProgresoAsync(idPartido, p.Minuto, p.GolesLocal, p.GolesVisitante, ct))
+                    return new(false, "El partido dejó de estar en vivo mientras se procesaba la acción.");
+                Encolar(nuevos);
+
+                _vivos[idPartido] = p;
+                await FinalizarAsync(p, ct);        // finaliza en PostgreSQL y liquida las apuestas en SQL Server
+                await VaciarEventosAsync(ct);
+                return new(true, $"Partido terminado: {p.GolesLocal}-{p.GolesVisitante}. Las apuestas se liquidaron.");
+            }
+            finally { _exclusion.Release(); }
+        }
+
+        /// <summary>
+        /// Anula el partido (SUSPENDIDO): cierra sus cuotas y anula sus selecciones en SQL Server. Las sencillas devuelven el
+        /// importe; en las combinadas la seleccion sale (cuota 1,00). Si SQL Server falla, la reconciliacion lo completa.
+        /// </summary>
+        public async Task<ResultadoDemo> AnularAsync(int idPartido, CancellationToken ct)
+        {
+            await _exclusion.WaitAsync(ct);
+            try
+            {
+                var cuotas = await _repo.AnularPartidoAsync(idPartido, ct);
+                if (cuotas is null) return new(false, "El partido no existe, ya terminó o ya estaba anulado.");
+
+                _vivos.Remove(idPartido);
+                try
+                {
+                    var r = await _liquidador.AnularPartidoAsync(idPartido, cuotas, ct);
+                    return new(true, $"Partido anulado. Apuestas resueltas ahora: {r.Anuladas} anuladas con devolución, {r.Perdidas} perdidas, {r.Ganadas} ganadas.");
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    _log.LogError(ex, "Partido {IdPartido} anulado, pero no se pudieron anular sus apuestas; lo hara la reconciliacion.", idPartido);
+                    return new(true, "Partido anulado. Sus apuestas se anularán en la próxima reconciliación.");
+                }
+            }
+            finally { _exclusion.Release(); }
         }
 
         // ---- 6. Nueva jornada y reconciliacion (E2) ---------------------------------------------------------------

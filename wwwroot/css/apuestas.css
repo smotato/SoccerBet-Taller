@@ -131,3 +131,11 @@
 .odd.up b::after{content:" \25B2";font-size:11px;color:#1E7B3A}
 .odd.dn b::after{content:" \25BC";font-size:11px;color:var(--red)}
 .vivo-min{color:var(--red);font-weight:700}
+
+/* ---- Modo demostracion (solo Development) ---- */
+.ap-demo{border:2px dashed #B5302B;background:#FFF5F4;border-radius:10px;padding:12px 16px;margin-bottom:12px}
+.ap-demo b{color:#8C2219}
+.ap-demo-acciones{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.ap-demo-acciones form{margin:0}
+.btn.ap-danger{background:#B5302B}
+.btn.ap-danger:hover{background:#8C2219}

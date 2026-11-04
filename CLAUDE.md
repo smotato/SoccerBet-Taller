@@ -72,7 +72,11 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
   `Simulador:PausaTrasGolSegundos` tras cada gol, las cierra desde `Simulador:MinutoCierre` (85) y marca no disponible lo casi decidido
   (`ProbCasiSegura`). `GET /Partidos/Estado?ids=` (JSON, publico, max. 30 ids) y `wwwroot/js/vivo.js` refrescan minuto, marcador y cuotas
   (con ▲▼) cada ~5 s en el home y el detalle. El cupon sigue rechazando partidos EN_VIVO hasta la fase 6b.
-- Pendiente (fase 6): modo demostracion (E4); apuestas en vivo y cash out (6b);
+- Modo demostracion (RF18, etapa E4) hecho: en el detalle de partido, recuadro rojo con "Terminar partido ahora" y "Anular partido"
+  (`POST /Partidos/DemoTerminar|DemoAnular/{id}`, antiforgery). SOLO existe en Development: el filtro `[SoloDevelopment]` responde 404 en
+  cualquier otro entorno y la vista no pinta el recuadro. Terminar simula de golpe los minutos que faltan y liquida; Anular usa
+  `anular_partido` + `sp_AnularApuestasPartido`. El simulador por si solo NUNCA anula partidos.
+- Pendiente: apuestas en vivo y cash out (6b);
   alineaciones y detalle de eventos (RF7); nube.
 - Entidades `Cliente` y `Saldo`: SOLO LECTURA desde C# (siempre `AsNoTracking()`, nunca `SaveChanges` sobre ellas).
   Solo `Login` se actualiza desde C# (intentos fallidos, bloqueo, ultimo_login).
