@@ -56,7 +56,14 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
 - Pagina publica de reglas (RF8) hecha: `/Reglas` lee de MongoDB (`soccerbet.reglas`, solo reglas activas) con `ReglaRepository` (solo
   lectura), cache en memoria de unos minutos (`Mongo:CacheMinutos`) y `IMongoClient` singleton perezoso (la app arranca aunque Mongo
   este caido; `Mongo:ServerSelectionTimeoutSeconds` evita que la pagina se cuelgue). Enlazada desde el menu lateral, "Ayuda" y el cupon.
-- Pendiente: simulador y liquidacion, apuestas en vivo y cash out, eventos y alineaciones en MongoDB (RF7), nube.
+- Simulador (RF13, etapa E1 de la fase 6) hecho: `Background/SimuladorHostedService` + `Services/Simulador/` (opciones en `appsettings.json`, seccion
+  `Simulador`). Inicia los PROGRAMADO vencidos de forma escalonada, avanza el minuto, genera goles y tarjetas (jugadores reales de MySQL) con
+  eventos en MongoDB (`eventos_partido`, upsert idempotente) y finaliza con `registrar_resultado_partido`. Un candado de PostgreSQL
+  (`BloqueoSimulador`) asegura UNA sola instancia simulando. Los EN_VIVO se retoman desde su minuto guardado (NULL -> `MinutoSinDato`=35).
+  `Simulador:AdelantarPartidosProgramados` (true solo en Development) adelanta el siguiente partido para que la demo no quede quieta.
+  OJO: en cuanto la app corre con `Simulador:Habilitado=true` simula sobre la BD configurada; para pruebas usar una copia de Postgres.
+- Pendiente (fase 6): liquidacion y reconciliacion (E2), cuotas en vivo (E3), modo demostracion (E4); apuestas en vivo y cash out (6b);
+  alineaciones y detalle de eventos (RF7); nube.
 - Entidades `Cliente` y `Saldo`: SOLO LECTURA desde C# (siempre `AsNoTracking()`, nunca `SaveChanges` sobre ellas).
   Solo `Login` se actualiza desde C# (intentos fallidos, bloqueo, ultimo_login).
 - Mockups de referencia (HTML): `docs/mockups/login.html`, `docs/mockups/home.html`, `docs/mockups/equipos.html` y

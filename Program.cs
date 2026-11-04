@@ -153,6 +153,29 @@ builder.Services.AddSingleton<MongoDB.Driver.IMongoClient>(sp =>
 builder.Services.AddScoped<CasaApuestas.Data.Mongo.IReglaRepository, CasaApuestas.Data.Mongo.ReglaRepository>();
 builder.Services.AddScoped<CasaApuestas.Services.IReglasService, CasaApuestas.Services.ReglasService>();
 
+// Simulador de partidos (RF13, fase 6). Servicio en segundo plano (Background/): inicia partidos a su hora, avanza el minuto,
+// genera goles/tarjetas (eventos en MongoDB) y los finaliza. Opciones en appsettings.json ("Simulador"); las pruebas reducen los
+// tiempos con variables de entorno. NpgsqlDataSource es singleton y NO conecta al crearse. Solo UNA instancia simula a la vez
+// (candado de PostgreSQL en BloqueoSimulador). El servicio se resuelve de forma perezosa: la app arranca aunque las bases esten caidas.
+builder.Services.AddOptions<CasaApuestas.Services.Simulador.SimuladorOptions>()
+    .Bind(builder.Configuration.GetSection(CasaApuestas.Services.Simulador.SimuladorOptions.Seccion))
+    .Validate(CasaApuestas.Services.Simulador.SimuladorOptions.EsValida,
+        "Falta o es invalida la seccion 'Simulador' de appsettings.json.")
+    .ValidateOnStart();
+builder.Services.AddSingleton(sp =>
+{
+    var cadena = sp.GetRequiredService<IConfiguration>().GetConnectionString("Postgres");
+    if (string.IsNullOrWhiteSpace(cadena))
+        throw new InvalidOperationException("Falta ConnectionStrings:Postgres (configurala con user-secrets).");
+    return Npgsql.NpgsqlDataSource.Create(cadena);
+});
+builder.Services.AddSingleton<CasaApuestas.Data.Postgres.ISimuladorRepository, CasaApuestas.Data.Postgres.SimuladorRepository>();
+builder.Services.AddSingleton<CasaApuestas.Data.Postgres.BloqueoSimulador>();
+builder.Services.AddSingleton<CasaApuestas.Data.Mongo.IEventoPartidoRepository, CasaApuestas.Data.Mongo.EventoPartidoRepository>();
+builder.Services.AddSingleton<CasaApuestas.Services.Simulador.IJugadoresCache, CasaApuestas.Services.Simulador.JugadoresCache>();
+builder.Services.AddSingleton<CasaApuestas.Services.Simulador.SimuladorPartidos>();
+builder.Services.AddHostedService<CasaApuestas.Background.SimuladorHostedService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

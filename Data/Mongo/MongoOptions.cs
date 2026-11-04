@@ -20,7 +20,14 @@ namespace CasaApuestas.Data.Mongo
         /// <summary>Minutos que las reglas se guardan en memoria. 0 = sin cache.</summary>
         public int CacheMinutos { get; set; }
 
+        /// <summary>
+        /// Coleccion donde el simulador guarda los eventos de los partidos (eventos_partido). Es configurable para poder
+        /// probar el simulador en una coleccion aparte sin mezclar eventos de prueba con los reales.
+        /// </summary>
+        public string ColeccionEventos { get; set; } = "";
+
         public static bool EsValida(MongoOptions o) =>
-            !string.IsNullOrWhiteSpace(o.Database) && o.ServerSelectionTimeoutSeconds > 0 && o.CacheMinutos >= 0;
+            !string.IsNullOrWhiteSpace(o.Database) && o.ServerSelectionTimeoutSeconds > 0 && o.CacheMinutos >= 0
+            && !string.IsNullOrWhiteSpace(o.ColeccionEventos);
     }
 }
