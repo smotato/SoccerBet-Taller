@@ -79,7 +79,12 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
 - Apuestas EN_VIVO (fase 6b, etapa 1) hechas: el cupon acepta partidos EN_VIVO si la cuota esta `disponible` (mercado abierto: sin pausa tras gol,
   antes del minuto 85, no casi decidido); el servidor lo valida. El cupon NUNCA cambia una cuota por su cuenta: solo avisa. El intervalo de
   refresco de las paginas es UNO solo (`Vivo:IntervaloActualizacionSegundos`, entregado en `<body data-vivo-intervalo>`).
-- Pendiente: cash out (6b, etapa 2);
+- Cash out (RF17, fase 6b etapa 2) hecho: en Mis apuestas, boton "Cash out $ X" para apuestas PENDIENTE. El valor lo calcula SIEMPRE el servidor
+  (`Services/CalculadoraCashOut`: importe x producto(cuota guardada / cuota actual) x `CashOut:Factor` (0,95), GANADA = cuota actual 1,00,
+  ANULADA no cuenta, PERDIDA = sin cash out, tope = ganancia potencial, pesos enteros; bloqueado si hay un mercado cerrado o el valor < $ 1).
+  `POST /Apuestas/ConfirmarCashOut` recalcula: si el valor cambio devuelve el nuevo SIN cobrar; luego `sp_CashOut` (idempotente por estado).
+  `cashout.js` refresca los valores con el mismo `Vivo:IntervaloActualizacionSegundos` del home. Una apuesta CASHOUT no se liquida despues.
+- Pendiente: nada de la fase 6; quedan retiros reales/nube/RF15 segun specs.md;
   alineaciones y detalle de eventos (RF7); nube.
 - Entidades `Cliente` y `Saldo`: SOLO LECTURA desde C# (siempre `AsNoTracking()`, nunca `SaveChanges` sobre ellas).
   Solo `Login` se actualiza desde C# (intentos fallidos, bloqueo, ultimo_login).

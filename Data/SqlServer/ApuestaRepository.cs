@@ -66,11 +66,12 @@ namespace CasaApuestas.Data.SqlServer
                 await using var cmd = conexion.CreateCommand();
                 // Solo las columnas necesarias. id_cliente se usa para FILTRAR (siempre el de la sesion) pero no se devuelve.
                 cmd.CommandText =
-                    @"SELECT id_apuesta, fecha_apuesta, importe, cuota_total, posible_ganancia, estado_apuesta,
-                             id_detalle, id_cuota, cuota, estado_seleccion
-                      FROM dbo.vw_DetalleApuestas
-                      WHERE id_cliente = @id_cliente
-                      ORDER BY fecha_apuesta DESC, id_apuesta DESC, id_detalle";
+                    @"SELECT v.id_apuesta, v.fecha_apuesta, v.importe, v.cuota_total, v.posible_ganancia, v.estado_apuesta,
+                             v.id_detalle, v.id_cuota, v.cuota, v.estado_seleccion, a.valor_cashout
+                      FROM dbo.vw_DetalleApuestas v
+                      LEFT JOIN dbo.Apuesta a ON a.id_apuesta = v.id_apuesta
+                      WHERE v.id_cliente = @id_cliente
+                      ORDER BY v.fecha_apuesta DESC, v.id_apuesta DESC, v.id_detalle";
                 cmd.Parameters.Add(new SqlParameter("@id_cliente", SqlDbType.Int) { Value = idCliente });
 
                 var filas = new List<FilaApuesta>();
@@ -78,9 +79,42 @@ namespace CasaApuestas.Data.SqlServer
                 while (await r.ReadAsync(ct))
                 {
                     filas.Add(new FilaApuesta(r.GetInt64(0), r.GetDateTime(1), r.GetDecimal(2), r.GetDecimal(3), r.GetDecimal(4),
-                        r.GetString(5), r.GetInt64(6), r.GetInt32(7), r.GetDecimal(8), r.GetString(9)));
+                        r.GetString(5), r.GetInt64(6), r.GetInt32(7), r.GetDecimal(8), r.GetString(9), r.IsDBNull(10) ? null : r.GetDecimal(10)));
                 }
                 return filas;
+            }
+            finally
+            {
+                if (cerrar) await conexion.CloseAsync();
+            }
+        }
+
+        public async Task<bool> CashOutAsync(int idCliente, long idApuesta, decimal valor, CancellationToken ct = default)
+        {
+            var conexion = _context.Database.GetDbConnection();
+            var cerrar = conexion.State != ConnectionState.Open;
+            if (cerrar) await conexion.OpenAsync(ct);
+            try
+            {
+                await using var cmd = conexion.CreateCommand();
+                cmd.CommandText = "dbo.sp_CashOut";
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter("@id_cliente", SqlDbType.Int) { Value = idCliente });
+                cmd.Parameters.Add(new SqlParameter("@id_apuesta", SqlDbType.BigInt) { Value = idApuesta });
+                cmd.Parameters.Add(new SqlParameter("@valor", SqlDbType.Decimal) { Precision = 18, Scale = 2, Value = valor });
+                var repetido = new SqlParameter("@repetido", SqlDbType.Bit) { Direction = ParameterDirection.Output };
+                cmd.Parameters.Add(repetido);
+                try
+                {
+                    await cmd.ExecuteNonQueryAsync(ct);
+                }
+                catch (SqlException ex) when (ex.Number is 50012 or 50032 or 50033 or 50034)
+                {
+                    throw new CashOutRechazadoException(ex.Number, ex.Message);
+                }
+                if (repetido.Value is not bool rep)
+                    throw new InvalidOperationException("sp_CashOut no devolvio @repetido: la base de datos tiene una version desactualizada del procedimiento.");
+                return rep;
             }
             finally
             {

@@ -8,7 +8,9 @@ namespace CasaApuestas.Models.ViewModels
 
     public record ApuestaViewModel(
         long IdApuesta, string Fecha, string Estado, decimal Importe, decimal CuotaTotal, decimal PosibleGanancia,
-        IReadOnlyList<SeleccionApuestaViewModel> Selecciones)
+        IReadOnlyList<SeleccionApuestaViewModel> Selecciones,
+        CasaApuestas.Services.ResultadoCashOut? CashOut = null,
+        decimal? ValorCobrado = null)
     {
         public bool EsCombinada => Selecciones.Count > 1;
         public string Tipo => EsCombinada ? $"Combinada de {Selecciones.Count}" : "Sencilla";

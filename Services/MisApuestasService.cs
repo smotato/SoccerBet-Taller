@@ -1,6 +1,7 @@
 using CasaApuestas.Data.SqlServer;
 using CasaApuestas.Models.ViewModels;
 using CasaApuestas.Services.Presentacion;
+using Microsoft.Extensions.Options;
 
 namespace CasaApuestas.Services
 {
@@ -22,13 +23,15 @@ namespace CasaApuestas.Services
         private readonly IApuestaRepository _apuestas;
         private readonly IContextoCuotasLoader _contexto;
         private readonly TimeProvider _reloj;
+        private readonly CashOutOptions _cashOut;
         private readonly ILogger<MisApuestasService> _log;
 
-        public MisApuestasService(IApuestaRepository apuestas, IContextoCuotasLoader contexto, TimeProvider reloj, ILogger<MisApuestasService> log)
+        public MisApuestasService(IApuestaRepository apuestas, IContextoCuotasLoader contexto, TimeProvider reloj, IOptions<CashOutOptions> cashOut, ILogger<MisApuestasService> log)
         {
             _apuestas = apuestas;
             _contexto = contexto;
             _reloj = reloj;
+            _cashOut = cashOut.Value;
             _log = log;
         }
 
@@ -72,8 +75,16 @@ namespace CasaApuestas.Services
                         return new SeleccionApuestaViewModel(f.IdCuota, "", "", $"Selección (cuota #{f.IdCuota})", f.Cuota, f.EstadoSeleccion, false);
                     }).ToList();
 
+                    // Cash out: solo para PENDIENTE. El valor lo calcula el SERVIDOR (cuotas actuales de PostgreSQL); si PostgreSQL no
+                    // respondio, el boton queda bloqueado con el motivo (nunca se calcula con datos viejos).
+                    ResultadoCashOut? cashOut = null;
+                    if (primera.EstadoApuesta == "PENDIENTE")
+                        cashOut = detalleNoDisponible
+                            ? new ResultadoCashOut(false, 0, "No pudimos leer las cuotas actuales. Inténtalo en unos segundos.")
+                            : CalculadoraCashOut.Evaluar(g.OrderBy(f => f.IdDetalle).ToList(), contexto, _cashOut.Factor);
+
                     return new ApuestaViewModel(primera.IdApuesta, FechaColombia.Formatear(primera.Fecha, ahora), primera.EstadoApuesta,
-                        primera.Importe, primera.CuotaTotal, primera.PosibleGanancia, selecciones);
+                        primera.Importe, primera.CuotaTotal, primera.PosibleGanancia, selecciones, cashOut, primera.ValorCashout);
                 }).ToList();
 
             return new MisApuestasViewModel

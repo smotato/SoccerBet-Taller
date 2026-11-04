@@ -14,10 +14,17 @@ namespace CasaApuestas.Data.SqlServer
     /// </summary>
     public record FilaApuesta(
         long IdApuesta, DateTime Fecha, decimal Importe, decimal CuotaTotal, decimal PosibleGanancia, string EstadoApuesta,
-        long IdDetalle, int IdCuota, decimal Cuota, string EstadoSeleccion);
+        long IdDetalle, int IdCuota, decimal Cuota, string EstadoSeleccion, decimal? ValorCashout = null);
 
     /// <summary>Un movimiento de saldo del cliente (recarga, apuesta, premio, devolucion...).</summary>
     public record MovimientoSaldoFila(long IdMovimiento, DateTime Fecha, string Tipo, decimal Importe, string Concepto, long? IdApuesta);
+
+    /// <summary>sp_CashOut rechazo el cobro con uno de sus errores controlados (50012, 50032, 50033 o 50034).</summary>
+    public class CashOutRechazadoException : Exception
+    {
+        public int Numero { get; }
+        public CashOutRechazadoException(int numero, string mensajeSql) : base(mensajeSql) => Numero = numero;
+    }
 
     /// <summary>El procedimiento rechazo la apuesta con uno de sus errores controlados (50020 a 50027).</summary>
     public class ApuestaRechazadaException : Exception
@@ -43,6 +50,12 @@ namespace CasaApuestas.Data.SqlServer
         /// antigua. Filtra SIEMPRE por el id_cliente recibido, que debe salir de la sesion.
         /// </summary>
         Task<IReadOnlyList<FilaApuesta>> ListarApuestasDeClienteAsync(int idCliente, CancellationToken ct = default);
+
+        /// <summary>
+        /// Ejecuta dbo.sp_CashOut: marca la apuesta CASHOUT SOLO si sigue PENDIENTE, guarda valor_cashout y acredita UNA vez (en una
+        /// transaccion). Devuelve true si el procedimiento dijo "repetido" (ya estaba en CASHOUT: no se acredito de nuevo).
+        /// </summary>
+        Task<bool> CashOutAsync(int idCliente, long idApuesta, decimal valor, CancellationToken ct = default);
 
         /// <summary>Ultimos movimientos de saldo del cliente (SOLO LECTURA, desde Movimiento_Saldo), mas recientes primero.</summary>
         Task<IReadOnlyList<MovimientoSaldoFila>> ListarMovimientosAsync(int idCliente, int maximo, CancellationToken ct = default);

@@ -42,7 +42,7 @@ ser **sencillas o combinadas**. Ver "Reglas de apuestas" mas abajo.
 
 ### Apuestas (SQL Server)
 - [x] RF16 Retiro de saldo **simulado**. Pagina "Retirar" (boton junto a Recargar): importe (minimo $ 10.000, maximo el saldo) y medio simulado (Nequi, PSE o cuenta bancaria). Se aprueba **al instante**: `sp_RetirarSaldo` descuenta el saldo una sola vez (idempotente, nunca negativo) y registra un DEBITO "Retiro simulado". Lista "Mis retiros". Sin Wompi ni Firestore.
-- [ ] RF17 Cash out: el cliente cierra una apuesta PENDIENTE y cobra un valor calculado al momento (boton "Cash out $ X" en Mis apuestas).
+- [x] RF17 Cash out: el cliente cierra una apuesta PENDIENTE y cobra un valor calculado al momento (boton "Cash out $ X" en Mis apuestas).
   - Valor = importe x producto de (cuota guardada / cuota actual) por seleccion x 0,95 (margen configurable). Seleccion GANADA: cuota actual 1,00; ANULADA: no cuenta. Tope: la ganancia potencial. Pesos enteros.
   - Disponible solo si ninguna seleccion perdio y las pendientes tienen mercado **abierto**. **El boton se bloquea cuando el valor sea menor a $ 1** (o el mercado este cerrado).
   - Al confirmar, el servidor recalcula; si el valor cambio, pide aceptar el nuevo. `sp_CashOut` marca CASHOUT solo si sigue PENDIENTE, guarda `valor_cashout` y acredita una sola vez. La liquidacion ignora apuestas que ya no estan PENDIENTE.

@@ -17,13 +17,57 @@ namespace CasaApuestas.Controllers
 
         private readonly IApuestaService _servicio;
         private readonly IMisApuestasService _misApuestas;
+        private readonly ICashOutService _cashOut;
         private readonly ILogger<ApuestasController> _log;
 
-        public ApuestasController(IApuestaService servicio, IMisApuestasService misApuestas, ILogger<ApuestasController> log)
+        public ApuestasController(IApuestaService servicio, IMisApuestasService misApuestas, ICashOutService cashOut, ILogger<ApuestasController> log)
         {
             _servicio = servicio;
             _misApuestas = misApuestas;
+            _cashOut = cashOut;
             _log = log;
+        }
+
+        // GET /Apuestas/ValoresCashOut : valor de cash out de las apuestas PENDIENTE del cliente de la SESION (lo refresca cashout.js).
+        [HttpGet]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public async Task<IActionResult> ValoresCashOut(CancellationToken ct)
+        {
+            if (!int.TryParse(User.FindFirst(AccountController.ClaimIdCliente)?.Value, out var idCliente)) return Unauthorized();
+            try
+            {
+                var valores = await _cashOut.CalcularPendientesAsync(idCliente, ct);
+                return Json(valores.Select(v => new { idApuesta = v.IdApuesta, disponible = v.Disponible, valor = v.Valor, motivo = v.Motivo }));
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _log.LogError(ex, "No se pudieron calcular los valores de cash out del cliente {IdCliente}.", idCliente);
+                return StatusCode(503, new { error = "No pudimos actualizar el cash out en este momento." });
+            }
+        }
+
+        // POST /Apuestas/ConfirmarCashOut   (sin sesion: 401; sin token antiforgery: 400; apuesta ajena: 404)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmarCashOut([FromBody] CashOutSolicitud? solicitud, CancellationToken ct)
+        {
+            // El id del cliente sale SIEMPRE de la sesion (claim), nunca del cuerpo.
+            if (!int.TryParse(User.FindFirst(AccountController.ClaimIdCliente)?.Value, out var idCliente))
+                return Unauthorized(new { exito = false, codigo = "SIN_SESION", mensaje = "Inicia sesión como cliente." });
+            if (solicitud is null || solicitud.IdApuesta <= 0)
+                return BadRequest(new { exito = false, codigo = "INVALIDA", mensaje = "No pudimos leer tu solicitud." });
+
+            try
+            {
+                var res = await _cashOut.ConfirmarAsync(idCliente, solicitud.IdApuesta, solicitud.ValorVisto, ct);
+                return StatusCode(res.Status, res);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                // PostgreSQL o SQL Server caidos: no se cobro nada que no se pueda reintentar (el cash out es idempotente por estado).
+                _log.LogError(ex, "Fallo el cash out de la apuesta {IdApuesta} del cliente {IdCliente}.", solicitud.IdApuesta, idCliente);
+                return StatusCode(503, new { exito = false, codigo = "NO_DISPONIBLE", mensaje = "No pudimos procesar el cash out en este momento. Revisa Mis apuestas antes de reintentar." });
+            }
         }
 
         // GET /Apuestas  ->  "Mis apuestas". Requiere sesion de cliente (sin sesion redirige al login).
@@ -79,3 +123,10 @@ namespace CasaApuestas.Controllers
         }
     }
 }
+
+    /// <summary>Cuerpo de POST /Apuestas/ConfirmarCashOut: la apuesta y el valor que el cliente vio (el servidor recalcula).</summary>
+    public class CashOutSolicitud
+    {
+        public long IdApuesta { get; set; }
+        public long ValorVisto { get; set; }
+    }

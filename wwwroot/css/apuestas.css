@@ -139,3 +139,11 @@
 .ap-demo-acciones form{margin:0}
 .btn.ap-danger{background:#B5302B}
 .btn.ap-danger:hover{background:#8C2219}
+
+/* ---- Cash out (Mis apuestas) ---- */
+.ap-co{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line);padding:10px 16px;background:#FAFCFD;flex-wrap:wrap}
+.ap-co .ap-co-txt{flex:1;min-width:160px}
+.ap-co .ap-co-conf{flex:1;min-width:160px}
+.ap-co .ap-co-acc{display:flex;gap:6px}
+.ap-co .ap-co-msg{flex-basis:100%}
+.ap-co .ap-co-btn:disabled{background:#B9B2BE;cursor:not-allowed}

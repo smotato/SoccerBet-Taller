@@ -15,6 +15,7 @@
         "GANADA" => ("Premio", Pesos.Formatear(a.PosibleGanancia), "cr"),
         "PENDIENTE" => ("Posible", Pesos.Formatear(a.PosibleGanancia), ""),
         "ANULADA" => ("Devuelto", Pesos.Formatear(a.Importe), ""),
+        "CASHOUT" => ("Cash out cobrado", Pesos.Formatear(a.ValorCobrado ?? 0), "cr"),
         "PERDIDA" => ("", "Sin premio", "db"),
         _ => ("", a.Estado, "")
     };
@@ -51,7 +52,9 @@ else
         <button type="button" role="tab" data-filtro="mov" aria-selected="false">Movimientos de saldo</button>
     </div>
 
-    <div id="panelApuestas">
+    @* Token antiforgery para el cash out: cashout.js lo envia en el encabezado RequestVerificationToken. *@
+    @Html.AntiForgeryToken()
+    <div id="panelApuestas" data-url-valores="@Url.Action("ValoresCashOut", "Apuestas")" data-url-confirmar="@Url.Action("ConfirmarCashOut", "Apuestas")">
         @if (Model.Apuestas.Count == 0)
         {
             <div class="cat-empty"><i class="bi bi-receipt" aria-hidden="true"></i><p>Todavía no tienes apuestas. Elige una cuota en <a class="ap-link" asp-controller="Home" asp-action="Index">Partidos</a> para empezar.</p></div>
@@ -96,6 +99,14 @@ else
                         }
                     </div>
                 }
+                @* Cash out (RF17): solo apuestas PENDIENTE. El valor y el bloqueo los decide el servidor; cashout.js lo refresca. *@
+                @if (a.Estado == "PENDIENTE" && a.CashOut is not null)
+                {
+                    <div class="ap-co" data-apuesta-id="@a.IdApuesta" data-valor="@a.CashOut.Valor" data-disponible="@(a.CashOut.Disponible ? "1" : "0")">
+                        <span class="fine ap-co-txt">@(a.CashOut.Disponible ? "Valor actual según las cuotas. Se recalcula al confirmar." : a.CashOut.Motivo)</span>
+                        <button type="button" class="btn ap-co-btn" disabled="@(!a.CashOut.Disponible)">Cash out@(a.CashOut.Disponible ? " " + Pesos.Formatear(a.CashOut.Valor) : "")</button>
+                    </div>
+                }
             </article>
         }
     </div>
@@ -121,6 +132,7 @@ else
 }
 
 @section Scripts {
+    <script src="~/js/cashout.js" asp-append-version="true"></script>
     <script>
         // Pestañas: filtran en el navegador las apuestas ya cargadas (no hay mas consultas al servidor).
         (function () {

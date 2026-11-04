@@ -131,6 +131,13 @@ builder.Services.AddScoped<CasaApuestas.Services.IContextoCuotasLoader, CasaApue
 builder.Services.AddScoped<CasaApuestas.Services.IApuestaService, CasaApuestas.Services.ApuestaService>();
 builder.Services.AddScoped<CasaApuestas.Services.IMisApuestasService, CasaApuestas.Services.MisApuestasService>();
 
+// Cash out (RF17): el factor (0,95) viene de appsettings.json ("CashOut"); si falta o es invalido la app no arranca.
+builder.Services.AddOptions<CasaApuestas.Services.CashOutOptions>()
+    .Bind(builder.Configuration.GetSection(CasaApuestas.Services.CashOutOptions.Seccion))
+    .Validate(CasaApuestas.Services.CashOutOptions.EsValida, "Falta o es invalida la seccion 'CashOut' de appsettings.json (Factor).")
+    .ValidateOnStart();
+builder.Services.AddScoped<CasaApuestas.Services.ICashOutService, CasaApuestas.Services.CashOutService>();
+
 // MongoDB (reglas, RF8; mas adelante eventos y alineaciones): quinto gestor. Las opciones (base, tiempo de espera, cache) salen de
 // appsettings.json ("Mongo") y la cadena de user-secrets. IMongoClient es UN SOLO cliente compartido (singleton, seguro entre
 // hilos). La fabrica solo se ejecuta cuando alguien lo pide por primera vez (la primera visita a /Reglas) y el driver conecta
