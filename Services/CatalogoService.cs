@@ -122,11 +122,17 @@ namespace CasaApuestas.Services
                 .Select(j => new JugadorFilaViewModel(j.NumeroCamiseta, $"{j.Nombres} {j.Apellidos}".Trim(), j.Nacionalidad))
                 .ToList();
 
-        /// <summary>Escudo generico: iniciales de las dos primeras palabras significativas ("Atletico Nacional" -> "AN").</summary>
+        private static readonly string[] PalabrasIgnoradas = { "de", "del", "la", "los" };
+
+        /// <summary>
+        /// Escudo generico provisional: primera letra de las dos primeras palabras, ignorando solo "de", "del", "la" y "los"
+        /// ("Alianza FC" -> "AF", "Junior de Barranquilla" -> "JB"). Puede haber repetidas (Deportivo Pasto y Deportivo
+        /// Pereira -> "DP"); los escudos reales las reemplazaran.
+        /// </summary>
         private static string Iniciales(string nombre)
         {
             var palabras = nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                .Where(w => w.Length > 2 && !w.Equals("de", StringComparison.OrdinalIgnoreCase) && !w.Equals("del", StringComparison.OrdinalIgnoreCase))
+                .Where(w => !PalabrasIgnoradas.Contains(w, StringComparer.OrdinalIgnoreCase))
                 .Take(2)
                 .Select(w => char.ToUpperInvariant(w[0]))
                 .ToArray();
