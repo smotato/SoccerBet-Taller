@@ -37,3 +37,4 @@ mongodata/
 ## SO
 Thumbs.db
 .DS_Store
+db/mysql/00_usuario.sql
