@@ -1,54 +1,81 @@
-/* Estilos de las pantallas de autenticacion (login/registro). Tomados de docs/mockups/login.html */
-:root{--bg:#F6F4F7;--ink:#1E1423;--muted:#665D6B;--line:#E3DDE6;--pink:#9ABED6;--pink-d:#2F6A8F;--pink-t:#E3EEF5;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+/* Estilos de las pantallas de autenticacion (login/registro). Tema oscuro "azul electrico" (docs/mockups/tema-oscuro.png).
+   El fondo de estadio de la referencia se aproxima solo con CSS (degradados + lineas de cancha): sin imagenes externas. */
+:root{--bg:#040B1F;--panel:#0A1733;--panel2:#0E1F45;--field:#0C1B3D;--line:#1A2F5C;--ink:#EAF1FF;--muted:#8CA0C8;--pink:#1A7FE8;--pink-h:#3A95F5;--pink-d:#5FB4FF;--pink-t:#0F2A57;--red:#FF4B4B;--green:#2BD67B;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 *,*::before,*::after{box-sizing:inherit}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Barlow,system-ui,sans-serif}
-.login{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
-.side{background:var(--pink);padding:48px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
-.side::before{content:"";position:absolute;right:90px;top:0;bottom:0;border-right:3px solid rgba(30,20,35,.14)}
-.side::after{content:"";position:absolute;right:-120px;top:50%;width:420px;height:420px;border:3px solid rgba(30,20,35,.14);border-radius:50%;transform:translateY(-50%)}
-.brand{font:700 30px "Barlow Condensed",sans-serif;display:flex;align-items:center;gap:10px}
-.brand i{font-size:28px;line-height:1}
+a{color:inherit}
+.login{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr;
+  background:
+    radial-gradient(520px 520px at 82% 38%,rgba(26,127,232,.45),transparent 70%),
+    radial-gradient(900px 420px at 20% 0%,rgba(20,80,190,.45),transparent 70%),
+    linear-gradient(180deg,#06173A 0%,#040B1F 62%,#03140F 100%)}
+.side{padding:48px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+/* cancha: franja verde oscura abajo con linea de medio campo y circulo central */
+.side::before{content:"";position:absolute;left:-10%;right:-10%;bottom:-8%;height:34%;background:linear-gradient(180deg,transparent,rgba(16,90,60,.35));transform:perspective(600px) rotateX(48deg);transform-origin:bottom}
+.brand{font:700 32px "Barlow Condensed",sans-serif;display:flex;align-items:center;gap:10px;position:relative;z-index:1}
+.brand i{font-size:32px;line-height:1;color:var(--pink-d);filter:drop-shadow(0 0 10px rgba(95,180,255,.7))}
+.brand em{font-style:normal;color:var(--pink-d)}
 .hero{position:relative;z-index:1}
-.login h1{font:700 72px/.95 "Barlow Condensed",sans-serif;margin:0 0 26px}
-.legal{position:relative;z-index:1;margin:0;font-size:13px;max-width:40ch}
+.login h1{font:italic 700 76px/.95 "Barlow Condensed",sans-serif;margin:0 0 30px;background:linear-gradient(180deg,#fff 0%,#7CC3FF 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none}
+.legal{position:relative;z-index:1;margin:0;font-size:13px;max-width:40ch;color:#C9D7F2}
 
 /* ticket decorativo: partido de ejemplo con cuotas 1-X-2 */
-.ticket{background:#fff;border-radius:12px;padding:16px 18px;max-width:330px;box-shadow:0 14px 30px rgba(30,20,35,.22);transform:rotate(-3deg);animation:ticket-flota 5s ease-in-out infinite}
-.ticket-head{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:12px}
-.live-dot{width:8px;height:8px;border-radius:50%;background:#C4372B;animation:ticket-pulso 1.6s ease-in-out infinite}
+.ticket{background:rgba(10,23,51,.82);border:1px solid #2A4378;backdrop-filter:blur(6px);border-radius:14px;padding:16px 18px;max-width:360px;box-shadow:0 18px 40px rgba(0,0,0,.5),0 0 30px rgba(26,127,232,.25);transform:rotate(-3deg);animation:ticket-flota 5s ease-in-out infinite}
+.ticket-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#C9D7F2;margin-bottom:12px}
+.live-dot{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);animation:ticket-pulso 1.6s ease-in-out infinite}
 .ticket-teams{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:600;margin-bottom:14px}
 .ticket-teams .t{display:flex;align-items:center;gap:8px}
 .ticket-teams .vs{color:var(--muted);font-size:12px}
-.sh{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:9px;font-weight:700;color:#fff;flex:none}
+.sh{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:9px;font-weight:700;color:#fff;flex:none;box-shadow:0 0 0 2px rgba(255,255,255,.15)}
 .ticket-odds{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.ticket-odds span{border:1px solid #CFC6D4;border-radius:6px;padding:6px 4px;text-align:center;line-height:1.2}
+.ticket-odds span{border:1px solid #2A4378;background:var(--field);border-radius:8px;padding:6px 4px;text-align:center;line-height:1.2}
 .ticket-odds small{display:block;color:var(--muted);font-size:11px}
-.ticket-odds b{font:700 22px "Barlow Condensed",sans-serif}
-.ticket-odds .pick{background:var(--pink);border-color:var(--ink)}
-.ticket-odds .pick small{color:var(--ink)}
+.ticket-odds b{font:700 24px "Barlow Condensed",sans-serif}
+.ticket-odds .pick{background:var(--pink);border-color:var(--pink-d);box-shadow:0 0 16px rgba(26,127,232,.6)}
+.ticket-odds .pick small{color:#fff}
 @keyframes ticket-flota{50%{transform:rotate(-3deg) translateY(-8px)}}
 @keyframes ticket-pulso{50%{opacity:.25}}
 @media (prefers-reduced-motion:reduce){.ticket,.live-dot{animation:none}}
 
 /* ventajas */
-.perks{list-style:none;margin:26px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
-.perks li{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.6);border-radius:99px;padding:6px 14px 6px 10px;font-weight:600;font-size:14px}
-.perks i{font-size:16px;line-height:1}
-.form{display:flex;align-items:center;justify-content:center;padding:32px}
-.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:32px;width:100%;max-width:400px}
-.card h2{font:700 32px "Barlow Condensed",sans-serif;margin:0 0 4px}
-.sub{color:var(--muted);margin:0 0 20px}
-.card label{display:block;font-weight:600;font-size:14px;margin:14px 0 6px}
-.card input{width:100%;padding:11px 12px;border:1px solid #C9C0CE;border-radius:6px;font:inherit;color:var(--ink);background:#fff}
-:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-.btn-pink{display:block;width:100%;text-align:center;border:0;border-radius:6px;padding:12px;font:inherit;font-weight:600;margin-top:20px;background:var(--pink);color:var(--ink);text-decoration:none;cursor:pointer}
-.btn-pink:hover{background:#82AAC6}
+.perks{list-style:none;margin:28px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.perks li{display:flex;align-items:center;gap:7px;background:rgba(10,23,51,.75);border:1px solid #2A4378;border-radius:99px;padding:5px 14px 5px 10px;font-weight:600;font-size:13px;color:#DCE8FF}
+.perks i{font-size:15px;line-height:1;color:var(--pink-d)}
+
+/* tarjeta del formulario */
+.form{display:flex;align-items:center;justify-content:center;padding:32px;position:relative;z-index:1}
+.card{background:rgba(10,23,51,.92);border:1px solid var(--line);border-radius:16px;padding:32px;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,0,0,.55)}
+.card h2{font:700 34px "Barlow Condensed",sans-serif;margin:0 0 4px}
+.sub{color:#C9D7F2;margin:0 0 20px}
+.card label{display:block;font-weight:600;font-size:14px;margin:16px 0 6px}
+.card input{width:100%;padding:12px 12px;border:1px solid #2A4378;border-radius:8px;font:inherit;color:var(--ink);background:var(--field)}
+.card input::placeholder{color:var(--muted)}
+.card input:focus{border-color:var(--pink-d);box-shadow:0 0 0 3px rgba(95,180,255,.25);outline:0}
+/* campo con icono a la izquierda (y boton de ojo opcional a la derecha) */
+.fld{position:relative}
+.fld>i.ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:18px;color:#B8C8E8;pointer-events:none}
+.fld input{padding-left:42px}
+.fld.eye input{padding-right:44px}
+.eye-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;background:transparent;border-radius:6px;color:#B8C8E8;font-size:18px;display:grid;place-items:center;cursor:pointer}
+.eye-btn:hover{color:#fff;background:rgba(95,180,255,.12)}
+:focus-visible{outline:3px solid var(--pink-d);outline-offset:2px}
+.btn-pink{display:block;width:100%;text-align:center;border:0;border-radius:10px;padding:13px;font:inherit;font-weight:700;font-size:17px;margin-top:22px;background:linear-gradient(180deg,#2B93FF,#1670D8);color:#fff;text-decoration:none;cursor:pointer;box-shadow:0 0 22px rgba(26,127,232,.55)}
+.btn-pink:hover{background:linear-gradient(180deg,#46A3FF,#1F7FEA)}
 /* errores de validacion debajo de cada input */
-.field-error{display:block;color:#C4372B;font-size:13px;font-weight:500;margin-top:4px}
+.field-error{display:block;color:#FF8A8A;font-size:13px;font-weight:500;margin-top:4px}
 .field-error:empty{display:none}
-.card input.invalid{border-color:#C4372B}
+.card input.invalid{border-color:var(--red)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:480px){.row2{grid-template-columns:1fr}}
-.foot{margin:16px 0 0;font-size:14px;color:var(--muted);text-align:center}
-.foot a{color:var(--pink-d);font-weight:600}
-@media(max-width:900px){.login{grid-template-columns:1fr}.side{padding:28px;min-height:240px;gap:18px}.login h1{font-size:44px;margin-bottom:14px}.ticket{display:none}.perks{margin-top:0}}
+.foot{margin:16px 0 0;font-size:14px;color:#C9D7F2;text-align:center}
+.foot a{color:var(--pink-d);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.or{display:flex;align-items:center;gap:12px;margin:14px 0 0;color:var(--muted);font-size:13px}
+.or::before,.or::after{content:"";flex:1;border-top:1px solid var(--line)}
+.or+.foot{margin-top:12px}
+.or+.foot a{font-size:16px}
+@media(max-width:900px){.login{grid-template-columns:1fr}.side{padding:28px;min-height:240px;gap:18px}.login h1{font-size:48px;margin-bottom:14px}.ticket{display:none}.perks{margin-top:0}}
+
+/* SweetAlert2 en tema oscuro */
+.swal2-popup{background:var(--panel)!important;color:var(--ink)!important;border:1px solid var(--line)!important;border-radius:14px!important;font-family:Barlow,system-ui,sans-serif!important}
+.swal2-title,.swal2-html-container{color:var(--ink)!important}
+.swal2-styled.swal2-confirm{background:linear-gradient(180deg,#2B93FF,#1670D8)!important;border-radius:8px!important}

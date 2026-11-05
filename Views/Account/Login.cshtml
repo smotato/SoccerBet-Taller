@@ -14,12 +14,13 @@
             <h2>Iniciar sesión</h2>
             <p class="sub">Entra con tu correo y contraseña.</p>
             <label for="Username">Correo electrónico</label>
-            <input id="Username" type="email" placeholder="nombre@correo.com" autocomplete="email">
+            <div class="fld"><i class="bi bi-envelope ic" aria-hidden="true"></i><input id="Username" type="email" placeholder="nombre@correo.com" autocomplete="email"></div>
             <label for="Password">Contraseña</label>
-            <input id="Password" type="password" placeholder="Tu contraseña" autocomplete="current-password">
+            <div class="fld eye"><i class="bi bi-lock ic" aria-hidden="true"></i><input id="Password" type="password" placeholder="Tu contraseña" autocomplete="current-password"><button type="button" class="eye-btn" id="btnVerPass" aria-label="Mostrar contraseña"><i class="bi bi-eye" aria-hidden="true"></i></button></div>
             <button type="button" id="btnLogin" class="btn-pink">Entrar</button>
             <p class="foot"><a href="#">Olvidé mi contraseña</a></p>
-            <p class="foot">¿No tienes cuenta? <a asp-action="Registro">Crear cuenta</a></p>
+            <div class="or" aria-hidden="true">o</div>
+            <p class="foot"><a asp-action="Registro">Crear cuenta</a></p>
         </div>
     </div>
 </section>
@@ -50,7 +51,7 @@
                         icon: 'warning',
                         title: 'La página caducó',
                         text: 'Recárgala e inténtalo de nuevo.',
-                        confirmButtonColor: '#2F6A8F'
+                        confirmButtonColor: '#1A7FE8'
                     });
                     return;
                 }
@@ -69,7 +70,7 @@
                     Swal.fire({
                         icon: 'error',
                         title: data.mensaje || 'Datos Incorrectos!',
-                        confirmButtonColor: '#2F6A8F'
+                        confirmButtonColor: '#1A7FE8'
                     });
                 }
             } catch (error) {
@@ -83,6 +84,14 @@
         }
 
         document.getElementById('btnLogin').addEventListener('click', iniciarSesion);
+        // Ojo: solo alterna la visibilidad de la contraseña en pantalla (no cambia el envío).
+        document.getElementById('btnVerPass').addEventListener('click', function () {
+            const input = document.getElementById('Password');
+            const ver = input.type === 'password';
+            input.type = ver ? 'text' : 'password';
+            this.firstElementChild.className = ver ? 'bi bi-eye-slash' : 'bi bi-eye';
+            this.setAttribute('aria-label', ver ? 'Ocultar contraseña' : 'Mostrar contraseña');
+        });
         // Enter dentro de los campos también envía el formulario
         document.querySelectorAll('#Username, #Password').forEach(function (el) {
             el.addEventListener('keydown', function (e) { if (e.key === 'Enter') iniciarSesion(); });

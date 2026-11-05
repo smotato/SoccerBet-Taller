@@ -60,8 +60,10 @@ La tabla `Usuario` tiene la columna `id_rol` con valor por defecto CLIENTE: el r
 - Iconos: Bootstrap Icons por CDN (`<i class="bi bi-...">`). Nunca emojis en la interfaz.
 
 ## Diseno (tokens)
-Fondo claro `#F6F4F7`, texto `#1E1423`, color principal **`#9ABED6`** (azul claro; la variable CSS se sigue llamando `--pink`),
-`#2F6A8F` (azul oscuro) para texto, enlaces y botones de alerta; `#E3EEF5` para fondos claros; hover del boton principal `#82AAC6`.
+Tema **oscuro azul electrico** (referencia: mockup de home y login entregado por el usuario). Fondo `#040B1F`, paneles `#0A1733`/`#0E1F45`,
+campos `#0C1B3D`, lineas `#1A2F5C`, texto `#EAF1FF`, apagado `#8CA0C8`, color principal **`#1A7FE8`** (la variable CSS se sigue llamando `--pink`;
+`--pink-d` `#5FB4FF` para enlaces/acentos), rojo `#FF4B4B`, verde `#2BD67B`. Todo el color sale de las variables de `:root` en `site.css` y `auth.css`.
+Los mockups HTML de `docs/mockups/` siguen siendo la referencia de **estructura**, no de color.
 Tipografias: Barlow Condensed (titulos) y Barlow (texto). Marca: icono de copa (`bi-trophy-fill`) + "SoccerBet".
 Home: cabecera azul con hamburguesa, menu lateral ocultable, banners, pestanas, lista de partidos con cuotas 1-X-2.
 **Cupon de apuesta** (panel lateral en escritorio, bajo la lista en movil): selecciones, importe, cuota total, ganancia potencial y

@@ -128,7 +128,7 @@
                         icon: 'warning',
                         title: 'La página caducó',
                         text: 'Recárgala e inténtalo de nuevo.',
-                        confirmButtonColor: '#2F6A8F'
+                        confirmButtonColor: '#1A7FE8'
                     });
                     return;
                 }
@@ -141,7 +141,7 @@
                         icon: 'success',
                         title: 'Cuenta creada',
                         text: data.mensaje,
-                        confirmButtonColor: '#9ABED6'
+                        confirmButtonColor: '#1A7FE8'
                     }).then(function () {
                         window.location.href = '/Account/Login';
                     });
@@ -152,7 +152,7 @@
                     Swal.fire({
                         icon: 'error',
                         title: data.mensaje || 'No se pudo completar el registro.',
-                        confirmButtonColor: '#2F6A8F'
+                        confirmButtonColor: '#1A7FE8'
                     });
                 }
             } catch (error) {
